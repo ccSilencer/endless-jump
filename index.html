@@ -126,7 +126,6 @@
   <audio id="bgmusic" src="bgmusic.mp3" loop></audio>
   <audio id="darkmusic" src="darktheme.mp3" loop></audio>
   <audio id="gameovermusic" src="gameover.mp3" loop></audio>
-
   <script>
     function resizeFullHeight() {
       document.body.style.height = window.innerHeight + "px";
@@ -262,16 +261,17 @@
 
     let lastTime = 0;
     function gameLoop(timestamp) {
-      const delta = (timestamp - lastTime) / 16.6667; // 60 FPS = 16.6667ms per frame
+      const delta = (timestamp - lastTime) / 16.6667;
       lastTime = timestamp;
-      for (let i = 0; i < delta; i++) update();
+      update(delta);
       draw();
       requestAnimationFrame(gameLoop);
     }
 
-    function update() {
+    function update(delta) {
       if (!isGameRunning) return;
-      speedTimer++;
+
+      speedTimer += delta;
       score = Math.floor(speedTimer / 10);
       scoreDiv.textContent = "Score: " + score;
 
@@ -281,11 +281,11 @@
         darkMusic.play().catch(() => {});
       }
       if (darkMusicStarted) {
-        music.volume = Math.max(0, music.volume - 0.0007);
-        darkMusic.volume = Math.min(0.5, darkMusic.volume + 0.0007);
+        music.volume = Math.max(0, music.volume - 0.0007 * delta);
+        darkMusic.volume = Math.min(0.5, darkMusic.volume + 0.0007 * delta);
       }
 
-      if (speedTimer % 600 === 0 && speed < 6) {
+      if (Math.floor(speedTimer / 600) > Math.floor((speedTimer - delta) / 600) && speed < 6) {
         speed += 0.25;
         platformSpacing = Math.min(260, platformSpacing + 5);
       }
@@ -295,10 +295,10 @@
         player.onGround = false;
       }
 
-      player.velY += gravity;
-      player.y += player.velY;
-      scrollX += speed;
-      platforms.forEach(p => p.x -= speed);
+      player.velY += gravity * delta;
+      player.y += player.velY * delta;
+      scrollX += speed * delta;
+      platforms.forEach(p => p.x -= speed * delta);
 
       if (platforms[0].x + platforms[0].width < 0) {
         platforms.shift();
@@ -309,7 +309,7 @@
       for (let p of platforms) {
         if (player.x < p.x + p.width && player.x + player.width > p.x &&
             player.y + player.height < p.y + 10 &&
-            player.y + player.height + player.velY >= p.y) {
+            player.y + player.height + player.velY * delta >= p.y) {
           player.y = p.y - player.height;
           player.velY = 0;
           player.onGround = true;
