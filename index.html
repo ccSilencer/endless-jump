@@ -116,7 +116,7 @@
     <p id="scoreDisplay"></p>
     <button onclick="prepareGame()">🔁 Erneut spielen</button>
     <button onclick="showOptions()">⚙️ Optionen</button>
-    <button onclick="window.close()">🚪 Ich gebe auf</button>
+    <button onclick="backToMenu()">🚪 Ich gebe auf</button>
   </div>
   <div id="score">Score: 0</div>
   <div id="spruch"></div>
@@ -260,6 +260,15 @@
       }
     });
 
+    let lastTime = 0;
+    function gameLoop(timestamp) {
+      const delta = (timestamp - lastTime) / 16.6667; // 60 FPS = 16.6667ms per frame
+      lastTime = timestamp;
+      for (let i = 0; i < delta; i++) update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
     function update() {
       if (!isGameRunning) return;
       speedTimer++;
@@ -380,14 +389,8 @@
       }
     }
 
-    function gameLoop() {
-      update();
-      draw();
-      requestAnimationFrame(gameLoop);
-    }
-
     showMenu();
-    gameLoop();
+    requestAnimationFrame(gameLoop);
     document.addEventListener("click", () => music.play().catch(() => {}), { once: true });
   </script>
 </body>
