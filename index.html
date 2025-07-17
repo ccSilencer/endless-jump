@@ -2,13 +2,13 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Endless Jump</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      height: 100%;
+      height: 100vh;
       background: #1b1b1b;
       font-family: 'Press Start 2P', monospace;
       display: flex;
@@ -128,16 +128,21 @@
   <audio id="gameovermusic" src="gameover.mp3" loop></audio>
 
   <script>
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
+    function resizeFullHeight() {
+      document.body.style.height = window.innerHeight + "px";
+    }
+    window.addEventListener("load", resizeFullHeight);
+    window.addEventListener("resize", resizeFullHeight);
 
-    // 👇 Erkennung von Mobilgeräten
     const isMobile = /Mobi|Android|iPhone|iPod/.test(navigator.userAgent);
     if (isMobile) {
       document.getElementById("wrapper").style.border = "none";
       document.getElementById("wrapper").style.padding = "0";
       document.getElementById("volumeLabel").style.display = "none";
     }
+
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
 
     let player = { x: 100, y: 200, width: 32, height: 32, velY: 0, onGround: false };
     const gravity = 0.6;
@@ -161,26 +166,16 @@
     const spruchBox = document.getElementById("spruch");
 
     const sayings = [
-      "🌈 Beim nächsten Mal klappt’s bestimmt!",
-      "💪 Aufstehen, Krone richten, weiterhüpfen!",
-      "🎮 Das war nur der Probelauf.",
-      "🌟 Du bist der Held unserer Herzen!",
-      "☕ Eine Pause und dann: Comeback!",
-      "🎉 Du bist besser als du denkst!",
-      "🧠 Denk dran: Auch Profis scheitern!",
-      "🔥 Du warst sooo nah dran!",
-      "🌙 Jeder Jump ein kleiner Schritt!",
-      "🧃 Erst mal ein Saft, dann neuer Versuch.",
-      "🚀 Lass dich nicht unterkriegen!",
-      "🎲 Das nächste Spiel ist DEINS!",
-      "🧸 Auch Pixelhelden brauchen Erholung.",
-      "🎵 Tragische Musik, episches Comeback.",
-      "💔 Game Over, aber du bleibst Legende.",
-      "🌌 Vielleicht war’s nur ein Traum?",
-      "📺 Werbung: Jetzt weiterspielen!",
-      "🧿 Karma ist auf deiner Seite.",
-      "🎯 Nur ein Sprung hat gefehlt!",
-      "🏆 Aufgeben ist KEINE Option!",
+      "🌈 Beim nächsten Mal klappt’s bestimmt!", "💪 Aufstehen, Krone richten, weiterhüpfen!",
+      "🎮 Das war nur der Probelauf.", "🌟 Du bist der Held unserer Herzen!",
+      "☕ Eine Pause und dann: Comeback!", "🎉 Du bist besser als du denkst!",
+      "🧠 Denk dran: Auch Profis scheitern!", "🔥 Du warst sooo nah dran!",
+      "🌙 Jeder Jump ein kleiner Schritt!", "🧃 Erst mal ein Saft, dann neuer Versuch.",
+      "🚀 Lass dich nicht unterkriegen!", "🎲 Das nächste Spiel ist DEINS!",
+      "🧸 Auch Pixelhelden brauchen Erholung.", "🎵 Tragische Musik, episches Comeback.",
+      "💔 Game Over, aber du bleibst Legende.", "🌌 Vielleicht war’s nur ein Traum?",
+      "📺 Werbung: Jetzt weiterspielen!", "🧿 Karma ist auf deiner Seite.",
+      "🎯 Nur ein Sprung hat gefehlt!", "🏆 Aufgeben ist KEINE Option!",
       "🕊️ Jeder Tod bringt Erkenntnis."
     ];
 
@@ -200,15 +195,18 @@
       spruchBox.style.display = "none";
       isGameRunning = false;
     }
+
     function backToMenu() {
       options.style.display = controls.style.display = gameover.style.display = "none";
       spruchBox.style.display = "none";
       menu.style.display = "block";
     }
+
     function showOptions() {
       menu.style.display = controls.style.display = gameover.style.display = "none";
       options.style.display = "block";
     }
+
     function showControls() {
       menu.style.display = options.style.display = gameover.style.display = "none";
       controls.style.display = "block";
