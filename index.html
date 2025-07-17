@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Endless Jump</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #1b1b1b;
+      font-family: 'Press Start 2P', monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+    #wrapper {
+      background: #2b2b2b;
+      padding: 8px;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 4px solid #000;
+    }
+    canvas {
+      image-rendering: pixelated;
+      max-width: 100vw;
+      max-height: 100vh;
+      width: 100%;
+      height: auto;
+    }
+    #menu, #options, #controls, #gameover {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #111;
+      padding: 30px;
+      border: 4px double #fff;
+      color: #00ffcc;
+      font-family: 'Press Start 2P', monospace;
+      text-align: center;
+      display: none;
+      z-index: 10;
+      box-shadow: 0 0 25px #00ffcc;
+    }
+    #menu h1, #gameover h1 {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: #fff;
+      text-shadow: 2px 2px #000;
+    }
+    #menu button, #options button, #controls button, #gameover button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 14px;
+      background: #222;
+      border: 2px solid #00ffcc;
+      color: #00ffcc;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    #menu button:hover, #options button:hover, #controls button:hover, #gameover button:hover {
+      background: #00ffcc;
+      color: #000;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 16px;
+      text-shadow: 1px 1px #000;
+    }
+    #spruch {
+      position: absolute;
+      right: 20px;
+      bottom: 20px;
+      transform: rotate(-6deg);
+      color: #fff;
+      font-size: 14px;
+      font-family: 'Press Start 2P', monospace;
+      max-width: 220px;
+      text-align: right;
+      z-index: 9;
+      display: none;
+      pointer-events: none;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="menu">
+    <h1>🎮 Endless Jump</h1>
+    <button onclick="prepareGame()">▶ Spiel starten</button>
+    <button onclick="showControls()">🕹️ Steuerung</button>
+    <button onclick="showOptions()">⚙️ Optionen</button>
+  </div>
+  <div id="controls">
+    <h2>🕹️ Steuerung</h2>
+    <p>SPACE / TAP</p>
+    <button onclick="backToMenu()">🔙 Zurück</button>
+  </div>
+  <div id="options">
+    <h2>⚙️ Optionen</h2>
+    <label>Lautstärke: <input type="range" min="0" max="1" step="0.01" value="0.5" id="volumeSlider"></label>
+    <br><br>
+    <button onclick="backToMenu()">🔙 Zurück</button>
+  </div>
+  <div id="gameover">
+    <h1>💀 Game Over</h1>
+    <p id="scoreDisplay"></p>
+    <button onclick="prepareGame()">🔁 Erneut spielen</button>
+    <button onclick="showOptions()">⚙️ Optionen</button>
+    <button onclick="window.close()">🚪 Ich gebe auf</button>
+  </div>
+  <div id="score">Score: 0</div>
+  <div id="spruch"></div>
+  <div id="wrapper">
+    <canvas id="game" width="1024" height="576"></canvas>
+  </div>
+  <audio id="bgmusic" src="bgmusic.mp3" loop></audio>
+  <audio id="darkmusic" src="darktheme.mp3" loop></audio>
+  <audio id="gameovermusic" src="gameover.mp3" loop></audio>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    let player = { x: 100, y: 200, width: 32, height: 32, velY: 0, onGround: false };
+    const gravity = 0.6;
+    const jumpForce = -16;
+    let keys = {}, scrollX = 0, speed = 3, platforms = [], isGameRunning = false, speedTimer = 0, gameReady = false;
+    let platformSpacing = 180;
+    let score = 0;
+    let highscore = 0;
+
+    const music = document.getElementById("bgmusic");
+    const darkMusic = document.getElementById("darkmusic");
+    const gameoverMusic = document.getElementById("gameovermusic");
+    let darkMusicStarted = false;
+
+    const menu = document.getElementById("menu");
+    const options = document.getElementById("options");
+    const controls = document.getElementById("controls");
+    const gameover = document.getElementById("gameover");
+    const scoreDisplay = document.getElementById("scoreDisplay");
+    const scoreDiv = document.getElementById("score");
+    const spruchBox = document.getElementById("spruch");
+
+    const sayings = [
+      "🌈 Beim nächsten Mal klappt’s bestimmt!",
+      "💪 Aufstehen, Krone richten, weiterhüpfen!",
+      "🎮 Das war nur der Probelauf.",
+      "🌟 Du bist der Held unserer Herzen!",
+      "☕ Eine Pause und dann: Comeback!",
+      "🎉 Du bist besser als du denkst!",
+      "🧠 Denk dran: Auch Profis scheitern!",
+      "🔥 Du warst sooo nah dran!",
+      "🌙 Jeder Jump ein kleiner Schritt!",
+      "🧃 Erst mal ein Saft, dann neuer Versuch.",
+      "🚀 Lass dich nicht unterkriegen!",
+      "🎲 Das nächste Spiel ist DEINS!",
+      "🧸 Auch Pixelhelden brauchen Erholung.",
+      "🎵 Tragische Musik, episches Comeback.",
+      "💔 Game Over, aber du bleibst Legende.",
+      "🌌 Vielleicht war’s nur ein Traum?",
+      "📺 Werbung: Jetzt weiterspielen!",
+      "🧿 Karma ist auf deiner Seite.",
+      "🎯 Nur ein Sprung hat gefehlt!",
+      "🏆 Aufgeben ist KEINE Option!",
+      "🕊️ Jeder Tod bringt Erkenntnis."
+    ];
+
+    document.getElementById("volumeSlider").addEventListener("input", e => {
+      music.volume = e.target.value;
+      darkMusic.volume = e.target.value;
+      gameoverMusic.volume = e.target.value;
+    });
+
+    function easeInOutQuad(x) {
+      return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+    }
+
+    function showMenu() {
+      menu.style.display = "block";
+      options.style.display = controls.style.display = gameover.style.display = "none";
+      spruchBox.style.display = "none";
+      isGameRunning = false;
+    }
+    function backToMenu() {
+      options.style.display = controls.style.display = gameover.style.display = "none";
+      spruchBox.style.display = "none";
+      menu.style.display = "block";
+    }
+    function showOptions() {
+      menu.style.display = controls.style.display = gameover.style.display = "none";
+      options.style.display = "block";
+    }
+    function showControls() {
+      menu.style.display = options.style.display = gameover.style.display = "none";
+      controls.style.display = "block";
+    }
+
+    function prepareGame() {
+      gameoverMusic.pause(); gameoverMusic.currentTime = 0;
+      darkMusic.pause(); darkMusic.currentTime = 0;
+      darkMusicStarted = false;
+      menu.style.display = options.style.display = controls.style.display = gameover.style.display = "none";
+      spruchBox.style.display = "none";
+      player.x = 100; player.velY = 0; scrollX = 0; speed = 3; speedTimer = 0; platformSpacing = 180;
+      platforms = [];
+      for (let i = 0; i < 15; i++) createPlatform(i * platformSpacing);
+      player.y = platforms[0].y - player.height;
+      gameReady = true; isGameRunning = false;
+      score = 0;
+      scoreDiv.textContent = "Score: 0";
+    }
+
+    function startGame() {
+      isGameRunning = true;
+      gameoverMusic.pause(); gameoverMusic.currentTime = 0;
+      darkMusic.pause(); darkMusic.currentTime = 0;
+      darkMusic.volume = 0; darkMusicStarted = false;
+      music.pause(); music.currentTime = 0;
+      music.volume = 0.5;
+      music.play().catch(() => {});
+    }
+
+    function createPlatform(x) {
+      const spacing = Math.floor(Math.random() * 140) + 120;
+      const width = Math.floor(Math.random() * 60) + 100;
+      const y = 300 + Math.random() * 150;
+      platforms.push({ x, y, width, height: 16 });
+    }
+
+    document.addEventListener("keydown", e => {
+      keys[e.code] = true;
+      if (gameReady && e.code === "Space") {
+        startGame(); gameReady = false;
+      }
+    });
+    document.addEventListener("keyup", e => keys[e.code] = false);
+
+    canvas.addEventListener("touchstart", () => {
+      if (gameReady) {
+        startGame(); gameReady = false;
+      } else if (isGameRunning && player.onGround) {
+        player.velY = jumpForce;
+        player.onGround = false;
+      }
+    });
+
+    function update() {
+      if (!isGameRunning) return;
+      speedTimer++;
+      score = Math.floor(speedTimer / 10);
+      scoreDiv.textContent = "Score: " + score;
+
+      if (score >= 300 && !darkMusicStarted) {
+        darkMusicStarted = true;
+        darkMusic.volume = 0;
+        darkMusic.play().catch(() => {});
+      }
+      if (darkMusicStarted) {
+        music.volume = Math.max(0, music.volume - 0.0007);
+        darkMusic.volume = Math.min(0.5, darkMusic.volume + 0.0007);
+      }
+
+      if (speedTimer % 600 === 0 && speed < 6) {
+        speed += 0.25;
+        platformSpacing = Math.min(260, platformSpacing + 5);
+      }
+
+      if (keys["Space"] && player.onGround) {
+        player.velY = jumpForce;
+        player.onGround = false;
+      }
+
+      player.velY += gravity;
+      player.y += player.velY;
+      scrollX += speed;
+      platforms.forEach(p => p.x -= speed);
+
+      if (platforms[0].x + platforms[0].width < 0) {
+        platforms.shift();
+        createPlatform(platforms[platforms.length - 1].x + platformSpacing);
+      }
+
+      player.onGround = false;
+      for (let p of platforms) {
+        if (player.x < p.x + p.width && player.x + player.width > p.x &&
+            player.y + player.height < p.y + 10 &&
+            player.y + player.height + player.velY >= p.y) {
+          player.y = p.y - player.height;
+          player.velY = 0;
+          player.onGround = true;
+        }
+      }
+
+      if (player.y > canvas.height) {
+        isGameRunning = false;
+        if (score > highscore) highscore = score;
+        const saying = sayings[Math.floor(Math.random() * sayings.length)];
+        scoreDisplay.innerHTML = `Dein Score: ${score}<br><br>Highscore: ${highscore}`;
+        spruchBox.textContent = saying;
+        spruchBox.style.display = "block";
+        gameover.style.display = "block";
+        music.pause(); darkMusic.pause();
+        music.currentTime = 0; darkMusic.currentTime = 0;
+        gameoverMusic.play().catch(() => {});
+      }
+    }
+
+    function draw() {
+      let corruption = Math.min(1, score / 500);
+      let smooth = easeInOutQuad(corruption);
+      const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      sky.addColorStop(0, `rgb(${94 + 100 * smooth}, ${194 - 100 * smooth}, ${240 - 200 * smooth})`);
+      sky.addColorStop(1, `rgb(${204 - 70 * smooth}, ${238 - 200 * smooth}, ${255 - 255 * smooth})`);
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      if (smooth < 0.8) {
+        ctx.fillStyle = "#ffffff88";
+        for (let i = 0; i < 3; i++) {
+          let cloudX = (scrollX * 0.2 + i * 400) % canvas.width - 200;
+          ctx.beginPath();
+          ctx.ellipse(cloudX, 100 + i * 30, 80, 40, 0, 0, Math.PI * 2);
+          ctx.ellipse(cloudX + 40, 100 + i * 30 + 10, 60, 30, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      for (let p of platforms) {
+        let r = Math.floor(76 + 100 * smooth);
+        let g = Math.floor(175 - 150 * smooth);
+        let b = Math.floor(80 - 80 * smooth);
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.fillRect(p.x, p.y, p.width, 8);
+        ctx.fillStyle = `rgba(${r - 50},0,0,0.6)`;
+        ctx.fillRect(p.x, p.y + 8, p.width, 8);
+      }
+
+      const px = player.x, py = player.y;
+      ctx.fillStyle = smooth > 0.7 ? "#888888" : "#ff5050";
+      ctx.fillRect(px, py, player.width, player.height);
+      ctx.fillStyle = smooth > 0.7 ? "#ff0000" : "#000";
+      ctx.fillRect(px + 6, py + 4, 4, 4);
+      ctx.fillRect(px + 22, py + 4, 4, 4);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(px + 7, py + 5, 2, 2);
+      ctx.fillRect(px + 23, py + 5, 2, 2);
+      ctx.fillStyle = "#000";
+      ctx.fillRect(px + 12, py + 10, 8, 2);
+      ctx.fillStyle = smooth > 0.7 ? "#666" : "#ff5050";
+      ctx.fillRect(px - 4, py + 12, 4, 10);
+      ctx.fillRect(px + player.width, py + 12, 4, 10);
+      ctx.fillStyle = smooth > 0.7 ? "#990000" : "#cc0000";
+      ctx.fillRect(px + 2, py + player.height - 4, 8, 4);
+      ctx.fillRect(px + 22, py + player.height - 4, 8, 4);
+
+      for (let x = 0; x < canvas.width; x += 32) {
+        let r = Math.floor(102 - 60 * smooth);
+        let g = Math.floor(68 - 50 * smooth);
+        let b = Math.floor(34 - 34 * smooth);
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.fillRect(x, canvas.height - 32, 32, 32);
+        ctx.fillStyle = `rgba(${r - 20},0,0,0.6)`;
+        ctx.fillRect(x + 4, canvas.height - 28, 24, 24);
+      }
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    showMenu();
+    gameLoop();
+    document.addEventListener("click", () => music.play().catch(() => {}), { once: true });
+  </script>
+</body>
+</html>
