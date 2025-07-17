@@ -19,11 +19,11 @@
     #wrapper {
       background: #2b2b2b;
       padding: 8px;
-      box-sizing: border-box;
       display: flex;
       justify-content: center;
       align-items: center;
       border: 4px solid #000;
+      box-sizing: border-box;
     }
     canvas {
       image-rendering: pixelated;
@@ -107,7 +107,7 @@
   </div>
   <div id="options">
     <h2>⚙️ Optionen</h2>
-    <label>Lautstärke: <input type="range" min="0" max="1" step="0.01" value="0.5" id="volumeSlider"></label>
+    <label id="volumeLabel">Lautstärke: <input type="range" min="0" max="1" step="0.01" value="0.5" id="volumeSlider"></label>
     <br><br>
     <button onclick="backToMenu()">🔙 Zurück</button>
   </div>
@@ -130,6 +130,14 @@
   <script>
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
+
+    // 👇 Erkennung von Mobilgeräten
+    const isMobile = /Mobi|Android|iPhone|iPod/.test(navigator.userAgent);
+    if (isMobile) {
+      document.getElementById("wrapper").style.border = "none";
+      document.getElementById("wrapper").style.padding = "0";
+      document.getElementById("volumeLabel").style.display = "none";
+    }
 
     let player = { x: 100, y: 200, width: 32, height: 32, velY: 0, onGround: false };
     const gravity = 0.6;
@@ -245,7 +253,6 @@
       }
     });
     document.addEventListener("keyup", e => keys[e.code] = false);
-
     canvas.addEventListener("touchstart", () => {
       if (gameReady) {
         startGame(); gameReady = false;
