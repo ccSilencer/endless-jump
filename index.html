@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Endless Jump</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
@@ -55,19 +56,11 @@
       box-shadow: 0 0 35px #ff0033;
       padding-top: 40px;
     }
-    #menu h1 {
+    #menu h1, #gameover h1 {
       font-size: 22px;
-      margin-bottom: 20px;
+      margin: 0 0 20px 0;
       color: #fff;
       text-shadow: 0 0 5px #00ffee, 0 0 10px #00ffee;
-    }
-    #gameover h1 {
-      margin: 0;
-      padding: 0;
-      font-size: 22px;
-      color: #fff;
-      text-shadow: 0 0 8px #ff0033, 0 0 12px #ff0033;
-      animation: pulse 1s infinite;
     }
     @keyframes pulse {
       0%, 100% { transform: scale(1); }
@@ -128,7 +121,6 @@
       to   { opacity: 1; transform: translate(-50%, -50%); }
     }
   </style>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
   <div id="menu">
@@ -137,17 +129,11 @@
     <button onclick="showControls()">🕹️ STEUERUNG</button><br>
     <button onclick="showOptions()">⚙️ OPTIONEN</button>
   </div>
-  <div id="controls">
-    <h2>🕹️ STEUERUNG</h2>
-    <p>SPACE / TAP</p>
-    <button onclick="backToMenu()">🔙 ZURÜCK</button>
-  </div>
+  <div id="controls"><h2>🕹️ STEUERUNG</h2><p>SPACE / TAP</p><button onclick="backToMenu()">🔙 ZURÜCK</button></div>
   <div id="options">
     <h2>⚙️ OPTIONEN</h2>
-    <label id="volumeLabel">Lautstärke:
-      <input type="range" min="0" max="1" step="0.01" value="0.5" id="volumeSlider">
-    </label><br><br>
-    <button onclick="resetHighscore()">🗑️ Highscore zurücksetzen</button><br>
+    <label id="volumeLabel">Lautstärke: <input type="range" min="0" max="1" step="0.01" value="0.5" id="volumeSlider"></label><br><br>
+    <button onclick="resetHighscore()">⛔ HIGHSCORE LÖSCHEN</button><br><br>
     <button onclick="backToMenu()">🔙 ZURÜCK</button>
   </div>
   <div id="gameover">
@@ -164,268 +150,264 @@
   <audio id="darkmusic" src="darktheme.mp3" loop></audio>
   <audio id="gameovermusic" src="gameover.mp3" loop></audio>
   <script>
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
-    const player = { x: 100, y: 0, width: 32, height: 32, velY: 0, onGround: false };
-    const gravity = 0.6, jumpForce = -16;
-    let scrollX = 0, speed = 3, speedTimer = 0, score = 0;
-    let platforms = [], platformSpacing = 200, gameReady = false, isGameRunning = false;
-    let darkMusicStarted = false;
-    let highscore = parseInt(localStorage.getItem("highscore")) || 0;
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const player = { x: 100, y: 0, width: 32, height: 32, velY: 0, onGround: false };
+const gravity = 0.6, jumpForce = -16;
+let scrollX = 0, speed = 3, speedTimer = 0, score = 0;
+let platforms = [], platformSpacing = 200, gameReady = false, isGameRunning = false;
+let darkMusicStarted = false;
+let highscore = parseInt(localStorage.getItem("highscore") || "0");
 
-    const music = document.getElementById("bgmusic"), darkMusic = document.getElementById("darkmusic"), gameoverMusic = document.getElementById("gameovermusic");
-    const sayings = ["🌈 Beim nächsten Mal klappt’s bestimmt!", "💪 Aufstehen, Krone richten, weiterhüpfen!", "🎮 Das war nur der Probelauf.", "🌟 Du bist der Held unserer Herzen!", "☕ Eine Pause und dann: Comeback!"];
-    const menu = document.getElementById("menu"), options = document.getElementById("options"), controls = document.getElementById("controls"), gameover = document.getElementById("gameover"), scoreDiv = document.getElementById("score"), spruchBox = document.getElementById("spruch"), scoreDisplay = document.getElementById("scoreDisplay");
+const music = document.getElementById("bgmusic");
+const darkMusic = document.getElementById("darkmusic");
+const gameoverMusic = document.getElementById("gameovermusic");
+const sayings = [
+  "🌈 Beim nächsten Mal klappt’s bestimmt!",
+  "💪 Aufstehen, Krone richten, weiterhüpfen!",
+  "🎮 Das war nur der Probelauf.",
+  "🌟 Du bist der Held unserer Herzen!",
+  "☕ Eine Pause und dann: Comeback!"
+];
 
-    document.getElementById("volumeSlider").addEventListener("input", e => {
-      [music, darkMusic, gameoverMusic].forEach(a => a.volume = e.target.value);
-    });
+const menu = document.getElementById("menu");
+const options = document.getElementById("options");
+const controls = document.getElementById("controls");
+const gameover = document.getElementById("gameover");
+const scoreDiv = document.getElementById("score");
+const spruchBox = document.getElementById("spruch");
+const scoreDisplay = document.getElementById("scoreDisplay");
 
-    function easeInOutQuad(x) { return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; }
+document.getElementById("volumeSlider").addEventListener("input", e => {
+  [music, darkMusic, gameoverMusic].forEach(a => a.volume = e.target.value);
+});
 
-    function showMenu() {
-      [menu, scoreDiv].forEach(el => el.style.display = "block");
-      [options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
-      isGameRunning = false;
+function resetHighscore() {
+  highscore = 0;
+  localStorage.setItem("highscore", "0");
+}
+
+function easeInOutQuad(x) {
+  return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+}
+
+function showMenu() {
+  [menu, scoreDiv].forEach(el => el.style.display = "block");
+  [options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
+  isGameRunning = false;
+}
+
+function backToMenu() {
+  [options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
+  menu.style.display = "block";
+}
+
+function showOptions() {
+  [menu, controls, gameover].forEach(el => el.style.display = "none");
+  options.style.display = "block";
+}
+
+function showControls() {
+  [menu, options, gameover].forEach(el => el.style.display = "none");
+  controls.style.display = "block";
+}
+
+function createPlatform(x, baseY) {
+  const maxHeightChange = 130;
+  const lastY = platforms.length ? platforms[platforms.length - 1].y : baseY;
+  const dy = Math.floor(Math.random() * maxHeightChange * 2) - maxHeightChange;
+  let y = lastY + dy;
+  const minY = 270;
+  const maxY = canvas.height - 80;
+  y = Math.max(minY, Math.min(maxY, y));
+  const width = Math.floor(Math.random() * 40) + 90;
+  platforms.push({ x, y, width, height: 16 });
+}
+
+function prepareGame() {
+  [gameoverMusic, darkMusic, music].forEach(a => { a.pause(); a.currentTime = 0; });
+  darkMusicStarted = false;
+  [menu, options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
+  scrollX = 0; speed = 3; speedTimer = 0; platforms = []; score = 0;
+  for (let i = 0; i < 15; i++) createPlatform(i * platformSpacing, canvas.height - 80);
+  const firstPlatform = platforms[0];
+  player.x = firstPlatform.x + firstPlatform.width / 2 - player.width / 2;
+  player.y = firstPlatform.y - player.height;
+  scrollX = player.x - canvas.width * 0.3;
+  player.velY = 0;
+  player.onGround = true;
+  gameReady = true;
+  isGameRunning = false;
+  scoreDiv.textContent = "Score: 0";
+  draw();
+}
+
+function startGame(withJump = false) {
+  isGameRunning = true;
+  music.volume = 0.5;
+  [music, darkMusic].forEach(a => { a.pause(); a.currentTime = 0; });
+  music.play().catch(() => {});
+  if (withJump && player.onGround) {
+    player.velY = jumpForce;
+    player.onGround = false;
+  }
+}
+
+document.addEventListener("keydown", e => {
+  if (e.code === "Space") {
+    if (gameReady) {
+      startGame(true);
+      gameReady = false;
+    } else if (player.onGround) {
+      player.velY = jumpForce;
+      player.onGround = false;
     }
+  }
+});
 
-    function backToMenu() {
-      [options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
-      menu.style.display = "block";
-    }
+canvas.addEventListener("touchstart", () => {
+  if (gameReady) {
+    startGame(true);
+    gameReady = false;
+  } else if (player.onGround) {
+    player.velY = jumpForce;
+    player.onGround = false;
+  }
+});
 
-    function showOptions() {
-      [menu, controls, gameover].forEach(el => el.style.display = "none");
-      options.style.display = "block";
-    }
+let lastTime = 0;
+function gameLoop(timestamp) {
+  const delta = (timestamp - lastTime) / 16.6667;
+  lastTime = timestamp;
+  update(delta);
+  draw();
+  requestAnimationFrame(gameLoop);
+}
 
-    function showControls() {
-      [menu, options, gameover].forEach(el => el.style.display = "none");
-      controls.style.display = "block";
-    }
+function update(delta) {
+  if (!isGameRunning) return;
+  speedTimer += delta;
+  score = Math.floor(speedTimer / 10);
+  scoreDiv.textContent = "Score: " + score;
 
-    function createPlatform(x, baseY) {
-      const maxHeightChange = 130;
-      const lastY = platforms.length ? platforms[platforms.length - 1].y : baseY;
-      const dy = Math.floor(Math.random() * maxHeightChange * 2) - maxHeightChange;
-      let y = lastY + dy;
-      const minY = 270;
-      const maxY = canvas.height - 80;
-      y = Math.max(minY, Math.min(maxY, y));
-      const width = Math.floor(Math.random() * 40) + 90;
-      platforms.push({ x, y, width, height: 16 });
-    }
+  if (score >= 300 && !darkMusicStarted) {
+    darkMusicStarted = true;
+    darkMusic.volume = 0;
+    darkMusic.play().catch(() => {});
+  }
 
-    function prepareGame() {
-      [gameoverMusic, darkMusic, music].forEach(a => { a.pause(); a.currentTime = 0; });
-      darkMusicStarted = false;
-      [menu, options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
+  if (darkMusicStarted) {
+    music.volume = Math.max(0, music.volume - 0.0007 * delta);
+    darkMusic.volume = Math.min(0.5, darkMusic.volume + 0.0007 * delta);
+  }
 
-      scrollX = 0;
-      speed = 3;
-      speedTimer = 0;
-      platforms = [];
-      score = 0;
+  if (Math.floor(speedTimer / 600) > Math.floor((speedTimer - delta) / 600) && speed < 6) {
+    speed += 0.25;
+    platformSpacing = Math.min(280, platformSpacing + 10);
+  }
 
-      const startY = canvas.height - 80;
-      const startX = 100;
-      const startWidth = 140;
-      platforms.push({ x: startX, y: startY, width: startWidth, height: 16 });
+  player.velY += gravity * delta;
+  player.y += player.velY * delta;
+  if (player.y < 20 && player.velY < 0) player.velY *= 0.5;
+  player.x += speed * delta;
+  scrollX = player.x - canvas.width * 0.3;
 
-      player.x = startX + startWidth / 2 - player.width / 2;
-      player.y = startY - player.height;
+  if (platforms[0].x + platforms[0].width < scrollX - 100) {
+    const last = platforms[platforms.length - 1];
+    platforms.shift();
+    createPlatform(last.x + platformSpacing, last.y);
+  }
+
+  player.onGround = false;
+  for (let p of platforms) {
+    if (player.x < p.x + p.width && player.x + player.width > p.x &&
+        player.y + player.height < p.y + 10 &&
+        player.y + player.height + player.velY * delta >= p.y) {
+      player.y = p.y - player.height;
       player.velY = 0;
       player.onGround = true;
-
-      const secondX = player.x + 160;
-      const secondY = player.y + 80;
-      platforms.push({ x: secondX, y: secondY, width: 120, height: 16 });
-
-      let last = platforms[1];
-      for (let i = 0; i < 13; i++) {
-        createPlatform(last.x + platformSpacing, last.y);
-        last = platforms[platforms.length - 1];
-      }
-
-      scrollX = player.x - canvas.width * 0.3;
-      gameReady = true;
-      isGameRunning = false;
-      scoreDiv.textContent = "Score: 0";
-      draw();
     }
+  }
 
-    function startGame(withJump = false) {
-      isGameRunning = true;
-      music.volume = 0.5;
-      [music, darkMusic].forEach(a => { a.pause(); a.currentTime = 0; });
-      music.play().catch(() => {});
-      if (withJump && player.onGround) {
-        player.velY = jumpForce;
-        player.onGround = false;
-      }
+  if (player.y > canvas.height) {
+    isGameRunning = false;
+    if (score > highscore) {
+      highscore = score;
+      localStorage.setItem("highscore", highscore);
     }
+    scoreDisplay.innerHTML = `Dein Score: ${score}<br><br>Highscore: ${highscore}`;
+    spruchBox.textContent = sayings[Math.floor(Math.random() * sayings.length)];
+    spruchBox.style.display = "block";
+    gameover.style.display = "block";
+    [music, darkMusic].forEach(a => { a.pause(); a.currentTime = 0; });
+    gameoverMusic.play().catch(() => {});
+  }
+}
 
-    document.addEventListener("keydown", e => {
-      if (e.code === "Space") {
-        if (gameReady) {
-          startGame(true);
-          gameReady = false;
-        } else if (player.onGround) {
-          player.velY = jumpForce;
-          player.onGround = false;
-        }
-      }
-    });
+function draw() {
+  const corruption = Math.min(1, score / 500);
+  const smooth = easeInOutQuad(corruption);
+  const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  sky.addColorStop(0, `rgb(${94 + 100 * smooth}, ${194 - 100 * smooth}, ${240 - 200 * smooth})`);
+  sky.addColorStop(1, `rgb(${204 - 70 * smooth}, ${238 - 200 * smooth}, ${255 - 255 * smooth})`);
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    canvas.addEventListener("touchstart", () => {
-      if (gameReady) {
-        startGame(true);
-        gameReady = false;
-      } else if (player.onGround) {
-        player.velY = jumpForce;
-        player.onGround = false;
-      }
-    });
+  for (let p of platforms) {
+    let r = Math.floor(76 + 100 * smooth);
+    let g = Math.floor(175 - 150 * smooth);
+    let b = Math.floor(80 - 80 * smooth);
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.fillRect(p.x - scrollX, p.y, p.width, 8);
+    ctx.fillStyle = `rgba(${r - 50},0,0,0.6)`;
+    ctx.fillRect(p.x - scrollX, p.y + 8, p.width, 8);
+  }
 
-    function resetHighscore() {
-      localStorage.removeItem("highscore");
-      highscore = 0;
-      alert("Highscore wurde zurückgesetzt.");
-    }
+  const px = player.x - scrollX, py = player.y;
+  const bodyColor = smooth > 0.8 ? "#556b2f" : smooth > 0.4 ? "#888" : "#ff5050";
+  const eyeOuter = smooth > 0.5 ? "#ff0000" : "#000";
+  const eyeInner = smooth > 0.5 ? "#ffa0a0" : "#fff";
+  const mouthColor = smooth > 0.7 ? "#aa0000" : "#000";
+  const toothColor = smooth > 0.8 ? "#fff" : null;
+  const armColor = smooth > 0.7 ? "#660000" : "#cc0000";
 
-    let lastTime = 0;
-    function gameLoop(timestamp) {
-      const delta = (timestamp - lastTime) / 16.6667;
-      lastTime = timestamp;
-      update(delta);
-      draw();
-      requestAnimationFrame(gameLoop);
-    }
+  ctx.fillStyle = bodyColor;
+  ctx.fillRect(px, py, player.width, player.height);
 
-    function update(delta) {
-      if (!isGameRunning) return;
-      speedTimer += delta;
-      score = Math.floor(speedTimer / 10);
-      scoreDiv.textContent = "Score: " + score;
+  ctx.fillStyle = eyeOuter;
+  ctx.fillRect(px + 6, py + 4, 6, 6);
+  ctx.fillRect(px + 20, py + 4, 6, 6);
 
-      if (score >= 300 && !darkMusicStarted) {
-        darkMusicStarted = true;
-        darkMusic.volume = 0;
-        darkMusic.play().catch(() => {});
-      }
+  ctx.fillStyle = eyeInner;
+  ctx.fillRect(px + 8, py + 6, 2, 2);
+  ctx.fillRect(px + 22, py + 6, 2, 2);
 
-      if (darkMusicStarted) {
-        music.volume = Math.max(0, music.volume - 0.0007 * delta);
-        darkMusic.volume = Math.min(0.5, darkMusic.volume + 0.0007 * delta);
-      }
+  ctx.fillStyle = mouthColor;
+  ctx.fillRect(px + 10, py + 12, 12, 4);
+  if (toothColor) {
+    ctx.fillStyle = toothColor;
+    ctx.fillRect(px + 11, py + 12, 2, 4);
+    ctx.fillRect(px + 14, py + 12, 2, 4);
+    ctx.fillRect(px + 17, py + 12, 2, 4);
+  }
 
-      if (Math.floor(speedTimer / 600) > Math.floor((speedTimer - delta) / 600) && speed < 6) {
-        speed += 0.25;
-        platformSpacing = Math.min(280, platformSpacing + 10);
-      }
+  ctx.fillStyle = armColor;
+  ctx.fillRect(px - 4, py + 12, 4, 10);
+  ctx.fillRect(px + player.width, py + 12, 4, 10);
+  ctx.fillRect(px + 2, py + player.height - 4, 8, 4);
+  ctx.fillRect(px + 22, py + player.height - 4, 8, 4);
 
-      player.velY += gravity * delta;
-      player.y += player.velY * delta;
-      if (player.y < 20 && player.velY < 0) player.velY *= 0.5;
-      player.x += speed * delta;
-      scrollX = player.x - canvas.width * 0.3;
+  if (smooth > 0.8) {
+    ctx.fillStyle = "#222";
+    ctx.fillRect(px + 5, py + 20, 3, 3);
+    ctx.fillRect(px + 18, py + 24, 4, 2);
+    ctx.fillRect(px + 13, py + 6, 2, 2);
+  }
+}
 
-      if (platforms[0].x + platforms[0].width < scrollX - 100) {
-        const last = platforms[platforms.length - 1];
-        platforms.shift();
-        createPlatform(last.x + platformSpacing, last.y);
-      }
-
-      player.onGround = false;
-      for (let p of platforms) {
-        if (player.x < p.x + p.width && player.x + player.width > p.x &&
-            player.y + player.height < p.y + 10 &&
-            player.y + player.height + player.velY * delta >= p.y) {
-          player.y = p.y - player.height;
-          player.velY = 0;
-          player.onGround = true;
-        }
-      }
-
-      if (player.y > canvas.height) {
-        isGameRunning = false;
-        if (score > highscore) {
-          highscore = score;
-          localStorage.setItem("highscore", highscore);
-        }
-        scoreDisplay.innerHTML = `Dein Score: ${score}<br><br>Highscore: ${highscore}`;
-        spruchBox.textContent = sayings[Math.floor(Math.random() * sayings.length)];
-        spruchBox.style.display = "block";
-        gameover.style.display = "block";
-        [music, darkMusic].forEach(a => { a.pause(); a.currentTime = 0; });
-        gameoverMusic.play().catch(() => {});
-      }
-    }
-
-    function draw() {
-      const corruption = Math.min(1, score / 500);
-      const smooth = easeInOutQuad(corruption);
-      const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      sky.addColorStop(0, `rgb(${94 + 100 * smooth}, ${194 - 100 * smooth}, ${240 - 200 * smooth})`);
-      sky.addColorStop(1, `rgb(${204 - 70 * smooth}, ${238 - 200 * smooth}, ${255 - 255 * smooth})`);
-      ctx.fillStyle = sky;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      for (let p of platforms) {
-        let r = Math.floor(76 + 100 * smooth);
-        let g = Math.floor(175 - 150 * smooth);
-        let b = Math.floor(80 - 80 * smooth);
-        ctx.fillStyle = `rgb(${r},${g},${b})`;
-        ctx.fillRect(p.x - scrollX, p.y, p.width, 8);
-        ctx.fillStyle = `rgba(${r - 50},0,0,0.6)`;
-        ctx.fillRect(p.x - scrollX, p.y + 8, p.width, 8);
-      }
-
-      const px = player.x - scrollX, py = player.y;
-      const bodyColor = smooth > 0.8 ? "#556b2f" : smooth > 0.4 ? "#888" : "#ff5050";
-      const eyeOuter = smooth > 0.5 ? "#ff0000" : "#000";
-      const eyeInner = smooth > 0.5 ? "#ffa0a0" : "#fff";
-      const mouthColor = smooth > 0.7 ? "#aa0000" : "#000";
-      const toothColor = smooth > 0.8 ? "#fff" : null;
-      const armColor = smooth > 0.7 ? "#660000" : "#cc0000";
-
-      ctx.fillStyle = bodyColor;
-      ctx.fillRect(px, py, player.width, player.height);
-
-      ctx.fillStyle = eyeOuter;
-      ctx.fillRect(px + 6, py + 4, 6, 6);
-      ctx.fillRect(px + 20, py + 4, 6, 6);
-
-      ctx.fillStyle = eyeInner;
-      ctx.fillRect(px + 8, py + 6, 2, 2);
-      ctx.fillRect(px + 22, py + 6, 2, 2);
-
-      ctx.fillStyle = mouthColor;
-      ctx.fillRect(px + 10, py + 12, 12, 4);
-      if (toothColor) {
-        ctx.fillStyle = toothColor;
-        ctx.fillRect(px + 11, py + 12, 2, 4);
-        ctx.fillRect(px + 14, py + 12, 2, 4);
-        ctx.fillRect(px + 17, py + 12, 2, 4);
-      }
-
-      ctx.fillStyle = armColor;
-      ctx.fillRect(px - 4, py + 12, 4, 10);
-      ctx.fillRect(px + player.width, py + 12, 4, 10);
-      ctx.fillRect(px + 2, py + player.height - 4, 8, 4);
-      ctx.fillRect(px + 22, py + player.height - 4, 8, 4);
-
-      if (smooth > 0.8) {
-        ctx.fillStyle = "#222";
-        ctx.fillRect(px + 5, py + 20, 3, 3);
-        ctx.fillRect(px + 18, py + 24, 4, 2);
-        ctx.fillRect(px + 13, py + 6, 2, 2);
-      }
-    }
-
-    showMenu();
-    requestAnimationFrame(gameLoop);
-    document.addEventListener("click", () => music.play().catch(() => {}), { once: true });
-  </script>
+showMenu();
+requestAnimationFrame(gameLoop);
+document.addEventListener("click", () => music.play().catch(() => {}), { once: true });
+</script>
 </body>
 </html>
