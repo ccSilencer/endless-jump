@@ -62,10 +62,6 @@
       color: #fff;
       text-shadow: 0 0 5px #00ffee, 0 0 10px #00ffee;
     }
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
     button {
       margin: 10px;
       padding: 14px 28px;
@@ -240,6 +236,8 @@ function prepareGame() {
   isGameRunning = false;
   scoreDiv.textContent = "Score: 0";
   draw();
+  lastTime = performance.now();
+  requestAnimationFrame(gameLoop);
 }
 
 function startGame(withJump = false) {
@@ -406,8 +404,6 @@ function draw() {
 }
 
 showMenu();
-requestAnimationFrame(gameLoop);
-document.addEventListener("click", () => music.play().catch(() => {}), { once: true });
-</script>
+  </script>
 </body>
 </html>
