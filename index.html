@@ -7,109 +7,68 @@
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
     html, body {
-      margin: 0;
-      padding: 0;
-      height: 100vh;
+      margin: 0; padding: 0; height: 100vh;
       background: radial-gradient(#0f0f0f, #000000);
       font-family: 'Press Start 2P', monospace;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      color: #00ffcc;
+      display: flex; justify-content: center; align-items: center;
+      overflow: hidden; color: #00ffcc;
     }
     #wrapper {
       background: #1c1c1c;
       padding: 8px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border: 4px solid #000;
-      box-sizing: border-box;
+      display: flex; justify-content: center; align-items: center;
+      border: 4px solid #000; box-sizing: border-box;
     }
     canvas {
       image-rendering: pixelated;
-      max-width: 100vw;
-      max-height: 100vh;
-      width: 100%;
-      height: auto;
+      max-width: 100vw; max-height: 100vh;
+      width: 100%; height: auto;
     }
     #menu, #options, #controls, #gameover {
-      position: absolute;
-      top: 50%;
-      left: 50%;
+      position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       background: rgba(10, 10, 10, 0.95);
       padding: 60px 30px 30px 30px;
       border: 4px double #00ffcc;
-      color: #00ffcc;
-      font-family: 'Press Start 2P', monospace;
-      text-align: center;
-      display: none;
-      z-index: 10;
+      color: #00ffcc; text-align: center;
+      display: none; z-index: 10;
       box-shadow: 0 0 35px #00ffee;
       animation: fadeIn 0.5s ease-in-out;
     }
     #gameover {
       border: 4px double #ff0033;
-      color: #ff0033;
-      box-shadow: 0 0 35px #ff0033;
+      color: #ff0033; box-shadow: 0 0 35px #ff0033;
       padding-top: 40px;
     }
     #menu h1, #gameover h1 {
-      font-size: 22px;
-      margin: 0 0 20px 0;
-      color: #fff;
-      text-shadow: 0 0 5px #00ffee, 0 0 10px #00ffee;
+      font-size: 22px; margin: 0 0 20px 0;
+      color: #fff; text-shadow: 0 0 5px #00ffee, 0 0 10px #00ffee;
     }
     button {
-      margin: 10px;
-      padding: 14px 28px;
-      font-size: 14px;
+      margin: 10px; padding: 14px 28px; font-size: 14px;
       font-family: 'Press Start 2P', monospace;
-      background: #000;
-      border: 2px solid #00ffcc;
-      color: #00ffcc;
-      cursor: pointer;
-      transition: all 0.2s ease;
+      background: #000; border: 2px solid #00ffcc; color: #00ffcc;
+      cursor: pointer; transition: all 0.2s ease;
       text-shadow: 0 0 3px #00ffee;
     }
     button:hover {
-      background: #00ffee;
-      color: #000;
-      text-shadow: none;
+      background: #00ffee; color: #000; text-shadow: none;
     }
     #gameover button {
-      border: 2px solid #ff0033;
-      color: #ff0033;
-      text-shadow: 0 0 3px #ff0033;
+      border: 2px solid #ff0033; color: #ff0033; text-shadow: 0 0 3px #ff0033;
     }
     #gameover button:hover {
-      background: #ff0033;
-      color: #000;
+      background: #ff0033; color: #000;
     }
     #score {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      color: white;
-      font-family: 'Press Start 2P', monospace;
-      font-size: 16px;
-      text-shadow: 1px 1px #000;
+      position: absolute; top: 10px; left: 10px;
+      color: white; font-size: 16px; text-shadow: 1px 1px #000;
     }
     #spruch {
-      position: absolute;
-      right: 20px;
-      bottom: 20px;
-      transform: rotate(-6deg);
-      color: #fff;
-      font-size: 14px;
-      font-family: 'Press Start 2P', monospace;
-      max-width: 220px;
-      text-align: right;
-      z-index: 9;
-      display: none;
-      pointer-events: none;
+      position: absolute; right: 20px; bottom: 20px;
+      transform: rotate(-6deg); color: #fff;
+      font-size: 14px; max-width: 220px; text-align: right;
+      z-index: 9; display: none; pointer-events: none;
       text-shadow: 0 0 4px #ff0033;
     }
     @keyframes fadeIn {
@@ -128,7 +87,7 @@
   <div id="controls"><h2>🕹️ STEUERUNG</h2><p>SPACE / TAP</p><button onclick="backToMenu()">🔙 ZURÜCK</button></div>
   <div id="options">
     <h2>⚙️ OPTIONEN</h2>
-    <label id="volumeLabel">Lautstärke: <input type="range" min="0" max="1" step="0.01" value="0.5" id="volumeSlider"></label><br><br>
+    <label>Lautstärke: <input type="range" min="0" max="1" step="0.01" value="0.5" id="volumeSlider"></label><br><br>
     <button onclick="resetHighscore()">⛔ HIGHSCORE LÖSCHEN</button><br><br>
     <button onclick="backToMenu()">🔙 ZURÜCK</button>
   </div>
@@ -214,9 +173,7 @@ function createPlatform(x, baseY) {
   const lastY = platforms.length ? platforms[platforms.length - 1].y : baseY;
   const dy = Math.floor(Math.random() * maxHeightChange * 2) - maxHeightChange;
   let y = lastY + dy;
-  const minY = 270;
-  const maxY = canvas.height - 80;
-  y = Math.max(minY, Math.min(maxY, y));
+  y = Math.max(270, Math.min(canvas.height - 80, y));
   const width = Math.floor(Math.random() * 40) + 90;
   platforms.push({ x, y, width, height: 16 });
 }
@@ -302,13 +259,14 @@ function update(delta) {
   }
 
   if (darkMusicStarted) {
-    music.volume = Math.max(0, music.volume - 0.0007 * delta);
-    darkMusic.volume = Math.min(0.5, darkMusic.volume + 0.0007 * delta);
+    music.volume = Math.max(0, music.volume - 0.0003 * delta);
+    darkMusic.volume = Math.min(0.5, darkMusic.volume + 0.0003 * delta);
+    if (music.volume === 0 && !music.paused) music.pause();
   }
 
-  if (Math.floor(speedTimer / 600) > Math.floor((speedTimer - delta) / 600) && speed < 6) {
-    speed += 0.25;
-    platformSpacing = Math.min(280, platformSpacing + 10);
+  if (Math.floor(speedTimer / 350) > Math.floor((speedTimer - delta) / 350) && speed < 7) {
+    speed += 0.3;
+    platformSpacing = Math.min(300, platformSpacing + 12);
   }
 
   player.velY += gravity * delta;
@@ -379,15 +337,12 @@ function draw() {
 
   ctx.fillStyle = bodyColor;
   ctx.fillRect(px, py, player.width, player.height);
-
   ctx.fillStyle = eyeOuter;
   ctx.fillRect(px + 6, py + 4, 6, 6);
   ctx.fillRect(px + 20, py + 4, 6, 6);
-
   ctx.fillStyle = eyeInner;
   ctx.fillRect(px + 8, py + 6, 2, 2);
   ctx.fillRect(px + 22, py + 6, 2, 2);
-
   ctx.fillStyle = mouthColor;
   ctx.fillRect(px + 10, py + 12, 12, 4);
   if (toothColor) {
@@ -396,7 +351,6 @@ function draw() {
     ctx.fillRect(px + 14, py + 12, 2, 4);
     ctx.fillRect(px + 17, py + 12, 2, 4);
   }
-
   ctx.fillStyle = armColor;
   ctx.fillRect(px - 4, py + 12, 4, 10);
   ctx.fillRect(px + player.width, py + 12, 4, 10);
