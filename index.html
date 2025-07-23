@@ -97,15 +97,6 @@
       background: #ff0033;
       color: #000;
     }
-    #score {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      color: white;
-      font-family: 'Press Start 2P', monospace;
-      font-size: 16px;
-      text-shadow: 1px 1px #000;
-    }
     #spruch {
       position: absolute;
       right: 20px;
@@ -138,7 +129,7 @@
 
     @media screen and (orientation: portrait) and (max-width: 900px) {
       #rotateMsg { display: block; }
-      #wrapper, #menu, #options, #controls, #gameover, #score, #spruch {
+      #wrapper, #menu, #options, #controls, #gameover, #spruch {
         display: none !important;
       }
     }
@@ -169,7 +160,6 @@
     <button onclick="showOptions()">⚙️ OPTIONEN</button>
     <button onclick="backToMenu()">🚪 AUFGEBEN</button>
   </div>
-  <div id="score">Score: 0</div>
   <div id="spruch"></div>
   <div id="wrapper"><canvas id="game" width="1024" height="576"></canvas></div>
   <div id="rotateMsg">🔄 Bitte Gerät drehen</div>
@@ -202,7 +192,6 @@ const menu = document.getElementById("menu");
 const options = document.getElementById("options");
 const controls = document.getElementById("controls");
 const gameover = document.getElementById("gameover");
-const scoreDiv = document.getElementById("score");
 const spruchBox = document.getElementById("spruch");
 const scoreDisplay = document.getElementById("scoreDisplay");
 
@@ -220,7 +209,7 @@ function easeInOutQuad(x) {
 }
 
 function showMenu() {
-  [menu, scoreDiv].forEach(el => el.style.display = "block");
+  [menu].forEach(el => el.style.display = "block");
   [options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
   isGameRunning = false;
 }
@@ -290,12 +279,10 @@ function prepareGame() {
   player.onGround = true;
   gameReady = true;
   isGameRunning = false;
-  scoreDiv.textContent = "Score: 0";
   draw();
   lastTime = performance.now();
   requestAnimationFrame(gameLoop);
 }
-
 
 function startGame(withJump = false) {
   isGameRunning = true;
@@ -357,7 +344,6 @@ function update(delta) {
   if (!isGameRunning) return;
   speedTimer += delta;
   score = Math.floor(speedTimer / 10);
-  scoreDiv.textContent = "Score: " + score;
 
   if (score >= 300 && !darkMusicStarted) {
     darkMusicStarted = true;
@@ -473,9 +459,18 @@ function draw() {
     ctx.fillRect(px + 18, py + 24, 4, 2);
     ctx.fillRect(px + 13, py + 6, 2, 2);
   }
+
+  // Score oben links mit Schlagschatten
+  ctx.font = "16px 'Press Start 2P'";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.fillStyle = "white";
+  ctx.fillText("Score: " + score, 11, 11);
+  ctx.fillStyle = "black";
+  ctx.fillText("Score: " + score, 10, 10);
 }
 
 showMenu();
-</script>
+  </script>
 </body>
 </html>
