@@ -1,3 +1,4 @@
+<!-- Der komplette HTML-Code -->
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -9,15 +10,16 @@
       margin: 0;
       padding: 0;
       height: 100vh;
-      background: #1b1b1b;
+      background: radial-gradient(#0f0f0f, #000000);
       font-family: 'Press Start 2P', monospace;
       display: flex;
       justify-content: center;
       align-items: center;
       overflow: hidden;
+      color: #00ffcc;
     }
     #wrapper {
-      background: #2b2b2b;
+      background: #1c1c1c;
       padding: 8px;
       display: flex;
       justify-content: center;
@@ -37,34 +39,65 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: #111;
-      padding: 30px;
-      border: 4px double #fff;
+      background: rgba(10, 10, 10, 0.95);
+      padding: 60px 30px 30px 30px;
+      border: 4px double #00ffcc;
       color: #00ffcc;
       font-family: 'Press Start 2P', monospace;
       text-align: center;
       display: none;
       z-index: 10;
-      box-shadow: 0 0 25px #00ffcc;
+      box-shadow: 0 0 35px #00ffee;
+      animation: fadeIn 0.5s ease-in-out;
     }
-    #menu h1, #gameover h1 {
+    #gameover {
+      border: 4px double #ff0033;
+      color: #ff0033;
+      box-shadow: 0 0 35px #ff0033;
+      padding-top: 40px;
+    }
+    #menu h1 {
       font-size: 22px;
       margin-bottom: 20px;
       color: #fff;
-      text-shadow: 2px 2px #000;
+      text-shadow: 0 0 5px #00ffee, 0 0 10px #00ffee;
     }
-    #menu button, #options button, #controls button, #gameover button {
+    #gameover h1 {
+      margin: 0;
+      padding: 0;
+      font-size: 22px;
+      color: #fff;
+      text-shadow: 0 0 8px #ff0033, 0 0 12px #ff0033;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    button {
       margin: 10px;
-      padding: 10px 20px;
+      padding: 14px 28px;
       font-size: 14px;
-      background: #222;
+      font-family: 'Press Start 2P', monospace;
+      background: #000;
       border: 2px solid #00ffcc;
       color: #00ffcc;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
+      text-shadow: 0 0 3px #00ffee;
     }
-    #menu button:hover, #options button:hover, #controls button:hover, #gameover button:hover {
-      background: #00ffcc;
+    button:hover {
+      background: #00ffee;
+      color: #000;
+      text-shadow: none;
+    }
+    #gameover button {
+      border: 2px solid #ff0033;
+      color: #ff0033;
+      text-shadow: 0 0 3px #ff0033;
+    }
+    #gameover button:hover {
+      background: #ff0033;
       color: #000;
     }
     #score {
@@ -89,171 +122,134 @@
       z-index: 9;
       display: none;
       pointer-events: none;
+      text-shadow: 0 0 4px #ff0033;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, -60%); }
+      to   { opacity: 1; transform: translate(-50%, -50%); }
     }
   </style>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
   <div id="menu">
-    <h1>🎮 Endless Jump</h1>
-    <button onclick="prepareGame()">▶ Spiel starten</button>
-    <button onclick="showControls()">🕹️ Steuerung</button>
-    <button onclick="showOptions()">⚙️ Optionen</button>
+    <h1>🧟 ENDLESS JUMP</h1>
+    <button onclick="prepareGame()">▶ SPIEL STARTEN</button><br>
+    <button onclick="showControls()">🕹️ STEUERUNG</button><br>
+    <button onclick="showOptions()">⚙️ OPTIONEN</button>
   </div>
-  <div id="controls">
-    <h2>🕹️ Steuerung</h2>
-    <p>SPACE / TAP</p>
-    <button onclick="backToMenu()">🔙 Zurück</button>
-  </div>
-  <div id="options">
-    <h2>⚙️ Optionen</h2>
-    <label id="volumeLabel">Lautstärke: <input type="range" min="0" max="1" step="0.01" value="0.5" id="volumeSlider"></label>
-    <br><br>
-    <button onclick="backToMenu()">🔙 Zurück</button>
-  </div>
+  <div id="controls"><h2>🕹️ STEUERUNG</h2><p>SPACE / TAP</p><button onclick="backToMenu()">🔙 ZURÜCK</button></div>
+  <div id="options"><h2>⚙️ OPTIONEN</h2><label id="volumeLabel">Lautstärke: <input type="range" min="0" max="1" step="0.01" value="0.5" id="volumeSlider"></label><br><br><button onclick="backToMenu()">🔙 ZURÜCK</button></div>
   <div id="gameover">
-    <h1>💀 Game Over</h1>
-    <p id="scoreDisplay"></p>
-    <button onclick="prepareGame()">🔁 Erneut spielen</button>
-    <button onclick="showOptions()">⚙️ Optionen</button>
-    <button onclick="backToMenu()">🚪 Ich gebe auf</button>
+    <h1>💀 GAME OVER</h1>
+    <p id="scoreDisplay" style="margin-top: 60px;"></p>
+    <button onclick="prepareGame()">🔁 NOCHMAL</button>
+    <button onclick="showOptions()">⚙️ OPTIONEN</button>
+    <button onclick="backToMenu()">🚪 AUFGEBEN</button>
   </div>
   <div id="score">Score: 0</div>
   <div id="spruch"></div>
-  <div id="wrapper">
-    <canvas id="game" width="1024" height="576"></canvas>
-  </div>
+  <div id="wrapper"><canvas id="game" width="1024" height="576"></canvas></div>
   <audio id="bgmusic" src="bgmusic.mp3" loop></audio>
   <audio id="darkmusic" src="darktheme.mp3" loop></audio>
   <audio id="gameovermusic" src="gameover.mp3" loop></audio>
   <script>
-    function resizeFullHeight() {
-      document.body.style.height = window.innerHeight + "px";
-    }
-    window.addEventListener("load", resizeFullHeight);
-    window.addEventListener("resize", resizeFullHeight);
-
-    const isMobile = /Mobi|Android|iPhone|iPod/.test(navigator.userAgent);
-    if (isMobile) {
-      document.getElementById("wrapper").style.border = "none";
-      document.getElementById("wrapper").style.padding = "0";
-      document.getElementById("volumeLabel").style.display = "none";
-    }
-
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
-
-    let player = { x: 100, y: 200, width: 32, height: 32, velY: 0, onGround: false };
-    const gravity = 0.6;
-    const jumpForce = -16;
-    let keys = {}, scrollX = 0, speed = 3, platforms = [], isGameRunning = false, speedTimer = 0, gameReady = false;
-    let platformSpacing = 180;
-    let score = 0;
-    let highscore = 0;
-
-    const music = document.getElementById("bgmusic");
-    const darkMusic = document.getElementById("darkmusic");
-    const gameoverMusic = document.getElementById("gameovermusic");
+    const player = { x: 100, y: 0, width: 32, height: 32, velY: 0, onGround: false };
+    const gravity = 0.6, jumpForce = -16;
+    let scrollX = 0, speed = 3, speedTimer = 0, score = 0, highscore = 0;
+    let platforms = [], platformSpacing = 200, gameReady = false, isGameRunning = false;
     let darkMusicStarted = false;
-
-    const menu = document.getElementById("menu");
-    const options = document.getElementById("options");
-    const controls = document.getElementById("controls");
-    const gameover = document.getElementById("gameover");
-    const scoreDisplay = document.getElementById("scoreDisplay");
-    const scoreDiv = document.getElementById("score");
-    const spruchBox = document.getElementById("spruch");
-
-    const sayings = [
-      "🌈 Beim nächsten Mal klappt’s bestimmt!", "💪 Aufstehen, Krone richten, weiterhüpfen!",
-      "🎮 Das war nur der Probelauf.", "🌟 Du bist der Held unserer Herzen!",
-      "☕ Eine Pause und dann: Comeback!", "🎉 Du bist besser als du denkst!",
-      "🧠 Denk dran: Auch Profis scheitern!", "🔥 Du warst sooo nah dran!",
-      "🌙 Jeder Jump ein kleiner Schritt!", "🧃 Erst mal ein Saft, dann neuer Versuch.",
-      "🚀 Lass dich nicht unterkriegen!", "🎲 Das nächste Spiel ist DEINS!",
-      "🧸 Auch Pixelhelden brauchen Erholung.", "🎵 Tragische Musik, episches Comeback.",
-      "💔 Game Over, aber du bleibst Legende.", "🌌 Vielleicht war’s nur ein Traum?",
-      "📺 Werbung: Jetzt weiterspielen!", "🧿 Karma ist auf deiner Seite.",
-      "🎯 Nur ein Sprung hat gefehlt!", "🏆 Aufgeben ist KEINE Option!",
-      "🕊️ Jeder Tod bringt Erkenntnis."
-    ];
+    const music = document.getElementById("bgmusic"), darkMusic = document.getElementById("darkmusic"), gameoverMusic = document.getElementById("gameovermusic");
+    const sayings = ["🌈 Beim nächsten Mal klappt’s bestimmt!", "💪 Aufstehen, Krone richten, weiterhüpfen!", "🎮 Das war nur der Probelauf.", "🌟 Du bist der Held unserer Herzen!", "☕ Eine Pause und dann: Comeback!"];
+    const menu = document.getElementById("menu"), options = document.getElementById("options"), controls = document.getElementById("controls"), gameover = document.getElementById("gameover"), scoreDiv = document.getElementById("score"), spruchBox = document.getElementById("spruch"), scoreDisplay = document.getElementById("scoreDisplay");
 
     document.getElementById("volumeSlider").addEventListener("input", e => {
-      music.volume = e.target.value;
-      darkMusic.volume = e.target.value;
-      gameoverMusic.volume = e.target.value;
+      [music, darkMusic, gameoverMusic].forEach(a => a.volume = e.target.value);
     });
 
-    function easeInOutQuad(x) {
-      return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
-    }
+    function easeInOutQuad(x) { return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; }
 
     function showMenu() {
-      menu.style.display = "block";
-      options.style.display = controls.style.display = gameover.style.display = "none";
-      spruchBox.style.display = "none";
+      [menu, scoreDiv].forEach(el => el.style.display = "block");
+      [options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
       isGameRunning = false;
     }
 
     function backToMenu() {
-      options.style.display = controls.style.display = gameover.style.display = "none";
-      spruchBox.style.display = "none";
+      [options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
       menu.style.display = "block";
     }
 
     function showOptions() {
-      menu.style.display = controls.style.display = gameover.style.display = "none";
+      [menu, controls, gameover].forEach(el => el.style.display = "none");
       options.style.display = "block";
     }
 
     function showControls() {
-      menu.style.display = options.style.display = gameover.style.display = "none";
+      [menu, options, gameover].forEach(el => el.style.display = "none");
       controls.style.display = "block";
     }
 
-    function prepareGame() {
-      gameoverMusic.pause(); gameoverMusic.currentTime = 0;
-      darkMusic.pause(); darkMusic.currentTime = 0;
-      darkMusicStarted = false;
-      menu.style.display = options.style.display = controls.style.display = gameover.style.display = "none";
-      spruchBox.style.display = "none";
-      player.x = 100; player.velY = 0; scrollX = 0; speed = 3; speedTimer = 0; platformSpacing = 180;
-      platforms = [];
-      for (let i = 0; i < 15; i++) createPlatform(i * platformSpacing);
-      player.y = platforms[0].y - player.height;
-      gameReady = true; isGameRunning = false;
-      score = 0;
-      scoreDiv.textContent = "Score: 0";
-    }
-
-    function startGame() {
-      isGameRunning = true;
-      gameoverMusic.pause(); gameoverMusic.currentTime = 0;
-      darkMusic.pause(); darkMusic.currentTime = 0;
-      darkMusic.volume = 0; darkMusicStarted = false;
-      music.pause(); music.currentTime = 0;
-      music.volume = 0.5;
-      music.play().catch(() => {});
-    }
-
-    function createPlatform(x) {
-      const spacing = Math.floor(Math.random() * 140) + 120;
-      const width = Math.floor(Math.random() * 60) + 100;
-      const y = 300 + Math.random() * 150;
+    function createPlatform(x, baseY) {
+      const maxHeightChange = 130;
+      const lastY = platforms.length ? platforms[platforms.length - 1].y : baseY;
+      const dy = Math.floor(Math.random() * maxHeightChange * 2) - maxHeightChange;
+      let y = lastY + dy;
+      const minY = 270;
+      const maxY = canvas.height - 80;
+      y = Math.max(minY, Math.min(maxY, y));
+      const width = Math.floor(Math.random() * 40) + 90;
       platforms.push({ x, y, width, height: 16 });
     }
 
+    function prepareGame() {
+      [gameoverMusic, darkMusic, music].forEach(a => { a.pause(); a.currentTime = 0; });
+      darkMusicStarted = false;
+      [menu, options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
+      scrollX = 0; speed = 3; speedTimer = 0; platforms = []; score = 0;
+      for (let i = 0; i < 15; i++) createPlatform(i * platformSpacing, canvas.height - 80);
+      const firstPlatform = platforms[0];
+      player.x = firstPlatform.x + firstPlatform.width / 2 - player.width / 2;
+      player.y = firstPlatform.y - player.height;
+      scrollX = player.x - canvas.width * 0.3;
+      player.velY = 0;
+      player.onGround = true;
+      gameReady = true;
+      isGameRunning = false;
+      scoreDiv.textContent = "Score: 0";
+      draw(); // ⭐ NEU: Zeichnet sofort den Spieler korrekt ins Bild
+    }
+
+    function startGame(withJump = false) {
+      isGameRunning = true;
+      music.volume = 0.5;
+      [music, darkMusic].forEach(a => { a.pause(); a.currentTime = 0; });
+      music.play().catch(() => {});
+      if (withJump && player.onGround) {
+        player.velY = jumpForce;
+        player.onGround = false;
+      }
+    }
+
     document.addEventListener("keydown", e => {
-      keys[e.code] = true;
-      if (gameReady && e.code === "Space") {
-        startGame(); gameReady = false;
+      if (e.code === "Space") {
+        if (gameReady) {
+          startGame(true);
+          gameReady = false;
+        } else if (player.onGround) {
+          player.velY = jumpForce;
+          player.onGround = false;
+        }
       }
     });
-    document.addEventListener("keyup", e => keys[e.code] = false);
+
     canvas.addEventListener("touchstart", () => {
       if (gameReady) {
-        startGame(); gameReady = false;
-      } else if (isGameRunning && player.onGround) {
+        startGame(true);
+        gameReady = false;
+      } else if (player.onGround) {
         player.velY = jumpForce;
         player.onGround = false;
       }
@@ -270,11 +266,9 @@
 
     function update(delta) {
       if (!isGameRunning) return;
-
       speedTimer += delta;
       score = Math.floor(speedTimer / 10);
       scoreDiv.textContent = "Score: " + score;
-
       if (score >= 300 && !darkMusicStarted) {
         darkMusicStarted = true;
         darkMusic.volume = 0;
@@ -287,22 +281,19 @@
 
       if (Math.floor(speedTimer / 600) > Math.floor((speedTimer - delta) / 600) && speed < 6) {
         speed += 0.25;
-        platformSpacing = Math.min(260, platformSpacing + 5);
-      }
-
-      if (keys["Space"] && player.onGround) {
-        player.velY = jumpForce;
-        player.onGround = false;
+        platformSpacing = Math.min(280, platformSpacing + 10);
       }
 
       player.velY += gravity * delta;
       player.y += player.velY * delta;
-      scrollX += speed * delta;
-      platforms.forEach(p => p.x -= speed * delta);
+      if (player.y < 20 && player.velY < 0) player.velY *= 0.5;
+      player.x += speed * delta;
+      scrollX = player.x - canvas.width * 0.3;
 
-      if (platforms[0].x + platforms[0].width < 0) {
+      if (platforms[0].x + platforms[0].width < scrollX - 100) {
+        const last = platforms[platforms.length - 1];
         platforms.shift();
-        createPlatform(platforms[platforms.length - 1].x + platformSpacing);
+        createPlatform(last.x + platformSpacing, last.y);
       }
 
       player.onGround = false;
@@ -319,13 +310,11 @@
       if (player.y > canvas.height) {
         isGameRunning = false;
         if (score > highscore) highscore = score;
-        const saying = sayings[Math.floor(Math.random() * sayings.length)];
         scoreDisplay.innerHTML = `Dein Score: ${score}<br><br>Highscore: ${highscore}`;
-        spruchBox.textContent = saying;
+        spruchBox.textContent = sayings[Math.floor(Math.random() * sayings.length)];
         spruchBox.style.display = "block";
         gameover.style.display = "block";
-        music.pause(); darkMusic.pause();
-        music.currentTime = 0; darkMusic.currentTime = 0;
+        [music, darkMusic].forEach(a => { a.pause(); a.currentTime = 0; });
         gameoverMusic.play().catch(() => {});
       }
     }
@@ -339,28 +328,17 @@
       ctx.fillStyle = sky;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      if (smooth < 0.8) {
-        ctx.fillStyle = "#ffffff88";
-        for (let i = 0; i < 3; i++) {
-          let cloudX = (scrollX * 0.2 + i * 400) % canvas.width - 200;
-          ctx.beginPath();
-          ctx.ellipse(cloudX, 100 + i * 30, 80, 40, 0, 0, Math.PI * 2);
-          ctx.ellipse(cloudX + 40, 100 + i * 30 + 10, 60, 30, 0, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-
       for (let p of platforms) {
         let r = Math.floor(76 + 100 * smooth);
         let g = Math.floor(175 - 150 * smooth);
         let b = Math.floor(80 - 80 * smooth);
         ctx.fillStyle = `rgb(${r},${g},${b})`;
-        ctx.fillRect(p.x, p.y, p.width, 8);
+        ctx.fillRect(p.x - scrollX, p.y, p.width, 8);
         ctx.fillStyle = `rgba(${r - 50},0,0,0.6)`;
-        ctx.fillRect(p.x, p.y + 8, p.width, 8);
+        ctx.fillRect(p.x - scrollX, p.y + 8, p.width, 8);
       }
 
-      const px = player.x, py = player.y;
+      const px = player.x - scrollX, py = player.y;
       ctx.fillStyle = smooth > 0.7 ? "#888888" : "#ff5050";
       ctx.fillRect(px, py, player.width, player.height);
       ctx.fillStyle = smooth > 0.7 ? "#ff0000" : "#000";
@@ -377,16 +355,6 @@
       ctx.fillStyle = smooth > 0.7 ? "#990000" : "#cc0000";
       ctx.fillRect(px + 2, py + player.height - 4, 8, 4);
       ctx.fillRect(px + 22, py + player.height - 4, 8, 4);
-
-      for (let x = 0; x < canvas.width; x += 32) {
-        let r = Math.floor(102 - 60 * smooth);
-        let g = Math.floor(68 - 50 * smooth);
-        let b = Math.floor(34 - 34 * smooth);
-        ctx.fillStyle = `rgb(${r},${g},${b})`;
-        ctx.fillRect(x, canvas.height - 32, 32, 32);
-        ctx.fillStyle = `rgba(${r - 20},0,0,0.6)`;
-        ctx.fillRect(x + 4, canvas.height - 28, 24, 24);
-      }
     }
 
     showMenu();
