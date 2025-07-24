@@ -145,6 +145,20 @@
       pointer-events: none;
       text-shadow: 0 0 4px #ff0033;
     }
+    #stats {
+      position: absolute;
+      top: 50%;
+      left: 20px;
+      transform: translateY(-50%);
+      background: rgba(20, 20, 20, 0.8);
+      padding: 10px;
+      border: 4px double #00ffcc;
+      color: #00ffcc;
+      font-family: 'Press Start 2P', monospace;
+      text-align: left;
+      z-index: 10;
+      display: none;
+    }
     #rotateMsg {
       display: none;
       position: absolute;
@@ -195,6 +209,7 @@
     <button onclick="backToMenu()">🚪 AUFGEBEN</button>
   </div>
   <div id="spruch"></div>
+  <div id="stats"></div>
   <div id="wrapper"><canvas id="game" width="1024" height="576" tabindex="0"></canvas></div>
   <div id="rotateMsg">🔄 Bitte Gerät drehen</div>
   <audio id="bgmusic" src="bgmusic.mp3" loop></audio>
@@ -295,6 +310,43 @@ const spruchBox = document.getElementById("spruch");
 const scoreDisplay = document.getElementById("scoreDisplay");
 const devToggleBtn = document.getElementById("devToggle");
 const optionsTitle = document.getElementById("optionsTitle");
+const statsBox = document.getElementById("stats");
+
+let stats = { playTime: 0, deaths: 0, jumps: 0 };
+function loadStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem("stats"));
+    if (s) stats = { ...stats, ...s };
+  } catch (e) {}
+}
+
+function saveStats() {
+  if (!devMode) localStorage.setItem("stats", JSON.stringify(stats));
+}
+
+function formatTime(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.floor(sec % 60);
+  return `${h}h ${m}m ${s}s`;
+}
+
+function updateStatsDisplay() {
+  statsBox.innerHTML =
+    `Gesamtspielzeit: ${formatTime(stats.playTime)}<br>` +
+    `Tode: ${stats.deaths}<br>` +
+    `Sprünge: ${stats.jumps}<br>` +
+    `Highscore: ${highscore}`;
+}
+
+function recordJump() {
+  if (devMode) return;
+  stats.jumps++;
+  updateStatsDisplay();
+}
+
+loadStats();
+updateStatsDisplay();
 
 if (devUnlocked) {
   devToggleBtn.style.display = "inline-block";
@@ -459,6 +511,8 @@ function blend3Arr(c1, c2, c3, t) {
 function showMenu() {
   [menu].forEach(el => el.style.display = "block");
   [options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
+  statsBox.style.display = "block";
+  updateStatsDisplay();
   isGameRunning = false;
   if (devModal) devModal.style.display = "none";
   document.body.classList.remove('dark-flicker');
@@ -467,6 +521,8 @@ function showMenu() {
 
 function backToMenu() {
   [options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
+  statsBox.style.display = "block";
+  updateStatsDisplay();
   menu.style.display = "block";
   if (devModal) devModal.style.display = "none";
   document.body.classList.remove('dark-flicker');
@@ -475,6 +531,7 @@ function backToMenu() {
 
 function showOptions() {
   [menu, controls, gameover].forEach(el => el.style.display = "none");
+  statsBox.style.display = "none";
   options.style.display = "block";
   if (devUnlocked) {
     devToggleBtn.style.display = "inline-block";
@@ -484,6 +541,7 @@ function showOptions() {
 
 function showControls() {
   [menu, options, gameover].forEach(el => el.style.display = "none");
+  statsBox.style.display = "none";
   controls.style.display = "block";
 }
 
@@ -522,6 +580,7 @@ function prepareGame() {
   darkMusicStarted = false;
   wasInGameOverScreen = false;
   [menu, options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
+  statsBox.style.display = "none";
   scrollX = 0; speed = 3; speedTimer = 0; platforms = []; score = 0; lightningTimer = 0;
   initBackground();
   const baseY = canvas.height - 80;
@@ -570,6 +629,7 @@ function startGame(withJump = false) {
   if (withJump && player.onGround) {
     player.velY = jumpForce;
     player.onGround = false;
+    recordJump();
   }
 }
 
@@ -591,6 +651,7 @@ document.addEventListener("keydown", e => {
     } else if (player.onGround) {
       player.velY = jumpForce;
       player.onGround = false;
+      recordJump();
     }
   }
 });
@@ -603,6 +664,7 @@ canvas.addEventListener("touchstart", e => {
   } else if (player.onGround) {
     player.velY = jumpForce;
     player.onGround = false;
+    recordJump();
   }
 }, { passive: false });
 
@@ -627,6 +689,9 @@ function gameLoop(timestamp) {
 
 function update(delta) {
   if (!isGameRunning) return;
+  if (!devMode) {
+    stats.playTime += delta * 16.6667 / 1000;
+  }
   speedTimer += delta;
   score = Math.floor(speedTimer / 10);
 
@@ -689,12 +754,15 @@ function update(delta) {
       deathDots.push({ x: player.x, y: canvas.height - 10, life: 120 });
       respawnPlayer();
     } else {
+      stats.deaths++;
+      saveStats();
       isGameRunning = false;
       wasInGameOverScreen = true;
       if (score > highscore) {
         highscore = score;
         localStorage.setItem("highscore", highscore);
       }
+      updateStatsDisplay();
       scoreDisplay.innerHTML = `Dein Score: ${score}<br><br>Highscore: ${highscore}`;
       spruchBox.textContent = sayings[Math.floor(Math.random() * sayings.length)];
       spruchBox.style.display = "block";
