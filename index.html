@@ -174,7 +174,6 @@ let platforms = [], gameReady = false, isGameRunning = false;
 const maxJumpHeight = Math.pow(Math.abs(jumpForce), 2) / (2 * gravity);
 let darkMusicStarted = false;
 let highscore = parseInt(localStorage.getItem("highscore") || "0");
-let wasInGameOverScreen = false;
 
 function fitScreen() {
   canvas.width = window.innerWidth;
@@ -298,7 +297,6 @@ function prepareGame() {
   fitScreen();
   [gameoverMusic, darkMusic, music].forEach(a => { a.pause(); a.currentTime = 0; });
   darkMusicStarted = false;
-  wasInGameOverScreen = false;
   [menu, options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
   scrollX = 0; speed = 3; speedTimer = 0; platforms = []; score = 0;
   const baseY = canvas.height - 80;
@@ -352,10 +350,13 @@ function startGame(withJump = false) {
 
 document.addEventListener("keydown", e => {
   if (e.code === "Space") {
-    if (!isGameRunning && (wasInGameOverScreen || gameover.style.display === "block")) {
-      wasInGameOverScreen = false;
+    // Restart immediately if the game over overlay is visible
+    if (!isGameRunning && gameover.style.display === "block") {
       prepareGame();
+      startGame(true);
+      gameReady = false;
       return;
+    
     }
     if (gameReady) {
       startGame(true);
@@ -441,7 +442,6 @@ function update(delta) {
 
   if (player.y > canvas.height) {
     isGameRunning = false;
-    wasInGameOverScreen = true;
     if (score > highscore) {
       highscore = score;
       localStorage.setItem("highscore", highscore);
