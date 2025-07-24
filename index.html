@@ -254,6 +254,29 @@ function easeInOutQuad(x) {
   return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
 }
 
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function lerpColor(c1, c2, t) {
+  const r = Math.round(lerp(c1[0], c2[0], t));
+  const g = Math.round(lerp(c1[1], c2[1], t));
+  const b = Math.round(lerp(c1[2], c2[2], t));
+  return `rgb(${r},${g},${b})`;
+}
+
+function blend3(c1, c2, c3, t) {
+  return t < 0.5
+    ? lerpColor(c1, c2, t * 2)
+    : lerpColor(c2, c3, (t - 0.5) * 2);
+}
+
+function lighten(color, t) {
+  return [
+    lerp(color[0], 255, t),
+    lerp(color[1], 255, t),
+    lerp(color[2], 255, t)
+  ];
+}
+
 function showMenu() {
   [menu].forEach(el => el.style.display = "block");
   [options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
@@ -459,30 +482,36 @@ function update(delta) {
 function draw() {
   const corruption = Math.min(1, score / 500);
   const smooth = easeInOutQuad(corruption);
+  const skyTop = lerpColor([94, 194, 240], [194, 94, 40], smooth);
+  const skyBottom = lerpColor([204, 238, 255], [134, 38, 0], smooth);
   const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  sky.addColorStop(0, `rgb(${94 + 100 * smooth}, ${194 - 100 * smooth}, ${240 - 200 * smooth})`);
-  sky.addColorStop(1, `rgb(${204 - 70 * smooth}, ${238 - 200 * smooth}, ${255 - 255 * smooth})`);
+  sky.addColorStop(0, skyTop);
+  sky.addColorStop(1, skyBottom);
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   for (let p of platforms) {
-    let r = Math.floor(76 + 100 * smooth);
-    let g = Math.floor(175 - 150 * smooth);
-    let b = Math.floor(80 - 80 * smooth);
-    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    const r = lerp(76, 176, smooth);
+    const g = lerp(175, 25, smooth);
+    const b = lerp(80, 0, smooth);
+    const base = [r, g, b];
+    const highlight = lighten(base, 0.25);
+    const grad = ctx.createLinearGradient(0, p.y, 0, p.y + 8);
+    grad.addColorStop(0, `rgb(${Math.round(highlight[0])},${Math.round(highlight[1])},${Math.round(highlight[2])})`);
+    grad.addColorStop(1, `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`);
+    ctx.fillStyle = grad;
     ctx.fillRect(p.x - scrollX, p.y, p.width, 8);
-    ctx.fillStyle = `rgba(${r - 50},0,0,0.6)`;
+    ctx.fillStyle = `rgba(${Math.round(r - 50)},0,0,0.6)`;
     ctx.fillRect(p.x - scrollX, p.y + 8, p.width, 8);
   }
 
   const px = player.x - scrollX, py = player.y;
-  const bodyColor = smooth > 0.8 ? "#556b2f" : smooth > 0.4 ? "#888" : "#ff5050";
-  const eyeOuter = smooth > 0.5 ? "#ff0000" : "#000";
-  const eyeInner = smooth > 0.5 ? "#ffa0a0" : "#fff";
-  const mouthColor = smooth > 0.7 ? "#aa0000" : "#000";
-  const toothColor = smooth > 0.8 ? "#fff" : null;
-  const armColor = smooth > 0.7 ? "#660000" : "#cc0000";
-
+  const bodyColor = blend3([255,80,80],[136,136,136],[85,107,47], smooth);
+  const eyeOuter = lerpColor([0,0,0],[255,0,0], Math.max(0,(smooth-0.3)/0.7));
+  const eyeInner = lerpColor([255,255,255],[255,160,160], Math.max(0,(smooth-0.3)/0.7));
+  const mouthColor = lerpColor([0,0,0],[170,0,0], Math.max(0,(smooth-0.5)/0.5));
+  const armColor = lerpColor([204,0,0],[102,0,0], Math.max(0,(smooth-0.5)/0.5));
+  
   ctx.fillStyle = bodyColor;
   ctx.fillRect(px, py, player.width, player.height);
 
@@ -495,9 +524,9 @@ function draw() {
   ctx.fillRect(px + 22, py + 6, 2, 2);
 
   ctx.fillStyle = mouthColor;
-  ctx.fillRect(px + 10, py + 12, 12, 4);
-  if (toothColor) {
-    ctx.fillStyle = toothColor;
+  ctx.fillRect(px + 10, py + 12, 12, 4 + smooth * 2);
+  if (smooth > 0.5) {
+    ctx.fillStyle = `rgba(255,255,255,${(smooth-0.5)*2})`;
     ctx.fillRect(px + 11, py + 12, 2, 4);
     ctx.fillRect(px + 14, py + 12, 2, 4);
     ctx.fillRect(px + 17, py + 12, 2, 4);
@@ -510,10 +539,13 @@ function draw() {
   ctx.fillRect(px + 22, py + player.height - 4, 8, 4);
 
   if (smooth > 0.8) {
+    ctx.save();
+    ctx.globalAlpha = (smooth - 0.8) / 0.2;
     ctx.fillStyle = "#222";
     ctx.fillRect(px + 5, py + 20, 3, 3);
     ctx.fillRect(px + 18, py + 24, 4, 2);
     ctx.fillRect(px + 13, py + 6, 2, 2);
+    ctx.restore();
   }
 
   // Score oben rechts, leicht nach unten versetzt
