@@ -484,14 +484,16 @@ function draw() {
     ctx.fillRect(px + 13, py + 6, 2, 2);
   }
 
-  // Score oben links mit Schlagschatten
+  // Score oben rechts, leicht nach unten versetzt
+  const scoreX = canvas.width - 10;
+  const scoreY = 50;
   ctx.font = "16px 'Press Start 2P'";
-  ctx.textAlign = "left";
+  ctx.textAlign = "right";
   ctx.textBaseline = "top";
-  ctx.fillStyle = "white";
-  ctx.fillText("Score: " + score, 11, 11);
   ctx.fillStyle = "black";
-  ctx.fillText("Score: " + score, 10, 10);
+  ctx.fillText("Score: " + score, scoreX + 1, scoreY + 1);
+  ctx.fillStyle = "white";
+  ctx.fillText("Score: " + score, scoreX, scoreY);
 }
 
 showMenu();
