@@ -210,7 +210,15 @@ function goFullscreen() {
 
 window.addEventListener("resize", fitScreen);
 window.addEventListener("orientationchange", () => { fitScreen(); checkOrientation(); });
-document.addEventListener("fullscreenchange", fitScreen);
+document.addEventListener("fullscreenchange", () => {
+  fitScreen();
+  if (!document.fullscreenElement) {
+    pauseAllAudio();
+  } else if (!document.hidden) {
+    resumePausedAudio();
+    canvas.focus();
+  }
+});
 fitScreen();
 
 const music = document.getElementById("bgmusic");
@@ -508,6 +516,7 @@ function startGame(withJump = false) {
 
 document.addEventListener("keydown", e => {
   if (e.code === "Space") {
+    e.preventDefault();
     if (!isGameRunning && (wasInGameOverScreen || gameover.style.display === "block")) {
       wasInGameOverScreen = false;
       prepareGame();
