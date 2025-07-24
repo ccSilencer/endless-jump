@@ -6,32 +6,31 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Endless Jump</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100dvh;
-      background: radial-gradient(#202020, #050505);
-      font-family: 'Inter', sans-serif;
+      background: radial-gradient(#0f0f0f, #000000);
+      font-family: 'Press Start 2P', monospace;
       display: flex;
       justify-content: center;
       align-items: center;
       overflow: hidden;
-      color: #1abc9c;
+      color: #00ffcc;
       -webkit-user-select: none;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
       touch-action: none;
     }
     #wrapper {
-      background: #111;
+      background: #1c1c1c;
       padding: 8px;
       display: flex;
       justify-content: center;
       align-items: center;
-      border: 2px solid #333;
-      border-radius: 12px;
+      border: 4px solid #000;
       box-sizing: border-box;
       width: 100%;
       height: 100%;
@@ -47,53 +46,54 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(20, 20, 20, 0.95);
-      padding: 50px 40px 30px 40px;
-      border: 2px solid #1abc9c;
-      border-radius: 8px;
-      color: #eee;
-      font-family: 'Inter', sans-serif;
+      background: rgba(10, 10, 10, 0.95);
+      padding: 60px 30px 30px 30px;
+      border: 4px double #00ffcc;
+      
+      color: #00ffcc;
+      font-family: 'Press Start 2P', monospace;
       text-align: center;
       display: none;
       z-index: 10;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-      animation: fadeIn 0.4s ease-in-out;
+      box-shadow: 0 0 35px #00ffee;
+      animation: fadeIn 0.5s ease-in-out;
     }
     #gameover {
-      border-color: #ff4e4e;
-      color: #ff4e4e;
-      box-shadow: 0 0 20px rgba(255,78,78,0.5);
+      border: 4px double #ff0033;
+      color: #ff0033;
+      box-shadow: 0 0 35px #ff0033;
       padding-top: 40px;
     }
     #menu h1, #gameover h1 {
-      font-size: 26px;
+      font-size: 22px;
       margin: 0 0 20px 0;
       color: #fff;
-      text-shadow: none;
+      text-shadow: 0 0 5px #00ffee, 0 0 10px #00ffee;
     }
     button {
       margin: 10px;
       padding: 12px 28px;
       font-size: 14px;
-      font-family: 'Inter', sans-serif;
-      background: #111;
-      border: 1px solid #1abc9c;
-      border-radius: 6px;
-      color: #1abc9c;
+      font-family: 'Press Start 2P', monospace;
+      background: #000;
+      border: 2px solid #00ffcc;
+      
+      color: #00ffcc;
       cursor: pointer;
-      transition: background 0.2s, color 0.2s;
+      text-shadow: 0 0 3px #00ffee;
+      transition: all 0.2s ease;
     }
     button:hover {
-      background: #1abc9c;
-      color: #111;
+      background: #00ffee;
+      color: #000;
     }
     #gameover button {
-      border-color: #ff4e4e;
-      color: #ff4e4e;
+      border-color: #ff0033;
+      color: #ff0033;
     }
     #gameover button:hover {
-      background: #ff4e4e;
-      color: #111;
+      background: #ff0033;
+      color: #000;
     }
     #spruch {
       position: absolute;
@@ -102,13 +102,13 @@
       transform: rotate(-6deg);
       color: #fff;
       font-size: 14px;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Press Start 2P', monospace;
       max-width: 220px;
       text-align: right;
       z-index: 9;
       display: none;
       pointer-events: none;
-      text-shadow: 0 0 4px #ff4e4e;
+      text-shadow: 0 0 4px #ff0033;
     }
     #rotateMsg {
       display: none;
@@ -118,9 +118,9 @@
       transform: translate(-50%, -50%);
       background: rgba(20, 20, 20, 0.95);
       padding: 20px;
-      border: 2px solid #1abc9c;
-      color: #1abc9c;
-      font-family: 'Inter', sans-serif;
+      border: 4px double #00ffcc;
+      color: #00ffcc;
+      font-family: 'Press Start 2P', monospace;
       text-align: center;
       z-index: 20;
     }
@@ -582,8 +582,8 @@ function update(delta) {
 function draw() {
   const corruption = Math.min(1, score / 500);
   const smooth = easeInOutQuad(corruption);
-  const skyTop = lerpColor([50, 60, 70], [20, 20, 20], smooth);
-  const skyBottom = lerpColor([80, 90, 100], [10, 10, 10], smooth);
+  const skyTop = lerpColor([108, 200, 255], [30, 30, 40], smooth);
+  const skyBottom = lerpColor([180, 230, 255], [10, 10, 10], smooth);
   const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
   sky.addColorStop(0, skyTop);
   sky.addColorStop(1, skyBottom);
@@ -591,40 +591,49 @@ function draw() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   for (let p of platforms) {
-    const r = lerp(80, 40, smooth);
-    const g = lerp(80, 40, smooth);
-    const b = lerp(80, 40, smooth);
-    const base = [r, g, b];
-    const highlight = lighten(base, 0.2);
+    const gr = lerp(95, 70, smooth);
+    const gg = lerp(166, 70, smooth);
+    const gb = lerp(76, 70, smooth);
+    const base = [gr, gg, gb];
+    const highlight = lighten(base, 0.25);
     const grad = ctx.createLinearGradient(0, p.y, 0, p.y + 8);
     grad.addColorStop(0, `rgb(${Math.round(highlight[0])},${Math.round(highlight[1])},${Math.round(highlight[2])})`);
-    grad.addColorStop(1, `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`);
+    grad.addColorStop(1, `rgb(${Math.round(gr)},${Math.round(gg)},${Math.round(gb)})`);
     ctx.fillStyle = grad;
     ctx.fillRect(p.x - scrollX, p.y, p.width, 8);
-    ctx.fillStyle = `rgba(0,0,0,0.6)`;
+    const dr = lerp(120, 40, smooth);
+    const dg = lerp(92, 40, smooth);
+    const db = lerp(60, 40, smooth);
+    ctx.fillStyle = `rgb(${Math.round(dr)},${Math.round(dg)},${Math.round(db)})`;
     ctx.fillRect(p.x - scrollX, p.y + 8, p.width, 8);
   }
 
   const px = player.x - scrollX, py = player.y;
-  const base1 = [26, 200, 180];
-  const base2 = [15, 80, 70];
-  const c1 = lerpColor(base1, [80,80,80], smooth);
-  const c2 = lerpColor(base2, [30,30,30], smooth);
-  const grad = ctx.createRadialGradient(px + 16, py + 16, 4, px + 16, py + 16, 16);
-  grad.addColorStop(0, c1);
-  grad.addColorStop(1, c2);
-  ctx.fillStyle = grad;
-  ctx.beginPath();
-  ctx.arc(px + 16, py + 16, 16, 0, Math.PI * 2);
-  ctx.fill();
+  const bodyColor = blend3([80,160,240],[160,160,160],[100,140,80], smooth);
+  const eyeOuter = lerpColor([0,0,0],[255,0,0], Math.max(0,(smooth-0.3)/0.7));
+  const eyeInner = lerpColor([255,255,255],[255,160,160], Math.max(0,(smooth-0.3)/0.7));
+  const mouthColor = lerpColor([0,0,0],[170,0,0], Math.max(0,(smooth-0.5)/0.5));
+  const armColor = lerpColor([80,160,240],[70,100,70], Math.max(0,(smooth-0.5)/0.5));
 
-  ctx.fillStyle = "#fff";
-  ctx.beginPath();
-  ctx.arc(px + 10, py + 12, 2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(px + 22, py + 12, 2, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.fillStyle = bodyColor;
+  ctx.fillRect(px, py, player.width, player.height);
+
+  ctx.fillStyle = eyeOuter;
+  ctx.fillRect(px + 6, py + 4, 6, 6);
+  ctx.fillRect(px + 20, py + 4, 6, 6);
+
+  ctx.fillStyle = eyeInner;
+  ctx.fillRect(px + 8, py + 6, 2, 2);
+  ctx.fillRect(px + 22, py + 6, 2, 2);
+
+  ctx.fillStyle = mouthColor;
+  ctx.fillRect(px + 10, py + 12, 12, 4 + smooth * 2);
+
+  ctx.fillStyle = armColor;
+  ctx.fillRect(px - 4, py + 12, 4, 10);
+  ctx.fillRect(px + player.width, py + 12, 4, 10);
+  ctx.fillRect(px + 2, py + player.height - 4, 8, 4);
+  ctx.fillRect(px + 22, py + player.height - 4, 8, 4);
 
   deathDots = deathDots.filter(d => d.life-- > 0);
   ctx.fillStyle = "red";
@@ -637,12 +646,12 @@ function draw() {
   // Score oben rechts, leicht nach unten versetzt
   const scoreX = canvas.width - 10;
   const scoreY = 50;
-  ctx.font = "16px 'Inter'";
+  ctx.font = "16px 'Press Start 2P'";
   ctx.textAlign = "right";
   ctx.textBaseline = "top";
   ctx.fillStyle = "black";
   ctx.fillText("Score: " + score, scoreX + 1, scoreY + 1);
-  ctx.fillStyle = "#1abc9c";
+  ctx.fillStyle = "white";
   ctx.fillText("Score: " + score, scoreX, scoreY);
 }
 
