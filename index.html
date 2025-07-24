@@ -215,7 +215,7 @@ let devUnlocked = false;
 let devMode = false;
 let deathDots = [];
 // background elements
-let clouds = [], mountains = [], trees = [];
+let clouds = [], trees = [];
 let lightningTimer = 0;
 let scoreDrips = [];
 
@@ -224,14 +224,17 @@ function fitScreen() {
   canvas.height = window.innerHeight;
 }
 
+const maxPlatformY = 270; // highest possible platform position
+
 function initBackground() {
   clouds = [];
-  mountains = [];
   trees = [];
-  const total = Math.ceil(canvas.width / 300) + 2;
+  const total = Math.ceil(canvas.width / 200) + 4;
   for (let i = 0; i < total; i++) {
-    clouds.push({ x: i * 300, y: 80 + Math.random() * 40 });
-    mountains.push({ x: i * 180, y: canvas.height - 180 - Math.random() * 40 });
+    clouds.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * maxPlatformY
+    });
   }
   // do not spawn trees
 }
@@ -564,6 +567,10 @@ document.addEventListener("keydown", e => {
       prepareGame();
       return;
     }
+    if (!isGameRunning && menu.style.display === "block") {
+      prepareGame();
+      return;
+    }
     if (gameReady) {
       startGame(true);
       gameReady = false;
@@ -695,26 +702,26 @@ function draw() {
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  const shadeGrad = ctx.createRadialGradient(
+    canvas.width / 2, canvas.height / 2, canvas.width / 4,
+    canvas.width / 2, canvas.height / 2, canvas.width
+  );
+  shadeGrad.addColorStop(0, 'rgba(0,0,0,' + (0.2 * smooth).toFixed(2) + ')');
+  shadeGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = shadeGrad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
   clouds.forEach(cl => {
     let x = cl.x - scrollX * 0.2;
-    if (x + 60 < 0) cl.x += clouds.length * 300;
+    if (x + 100 < 0) {
+      cl.x = canvas.width + Math.random() * canvas.width;
+      cl.y = Math.random() * maxPlatformY;
+    }
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
     ctx.beginPath();
-    ctx.arc(x + 15, cl.y + 10, 10, 0, Math.PI * 2);
-    ctx.arc(x + 30, cl.y + 5, 15, 0, Math.PI * 2);
-    ctx.arc(x + 45, cl.y + 10, 10, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  mountains.forEach(m => {
-    let x = m.x - scrollX * 0.4;
-    if (x + 120 < 0) m.x += mountains.length * 180;
-    ctx.fillStyle = '#334';
-    ctx.beginPath();
-    ctx.moveTo(x, m.y + 120);
-    ctx.lineTo(x + 60, m.y);
-    ctx.lineTo(x + 120, m.y + 120);
-    ctx.closePath();
+    ctx.arc(x + 20, cl.y + 20, 20, 0, Math.PI * 2);
+    ctx.arc(x + 40, cl.y + 15, 30, 0, Math.PI * 2);
+    ctx.arc(x + 70, cl.y + 20, 20, 0, Math.PI * 2);
     ctx.fill();
   });
 
