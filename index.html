@@ -41,7 +41,7 @@
       height: 100dvh;
       touch-action: none;
     }
-    #menu, #options, #controls, #gameover {
+    #menu, #options, #controls, #gameover, #confirmReset {
       position: absolute;
       top: 50%;
       left: 50%;
@@ -70,7 +70,7 @@
         inset 0 -4px 8px rgba(0,0,0,0.8),
         0 8px 18px rgba(0,0,0,0.8),
         0 0 35px #ff0033;
-      padding-top: 40px;
+      padding-top: 60px;
     }
     #menu h1, #gameover h1 {
       font-size: 26px;
@@ -130,6 +130,26 @@
       transform: translateY(-2px);
       box-shadow: 0 6px 0 #82001b, 0 6px 12px rgba(0,0,0,0.6);
     }
+    #confirmReset {
+      border: 4px double #ff0033;
+      color: #ff0033;
+      box-shadow:
+        inset 0 4px 8px rgba(255,255,255,0.05),
+        inset 0 -4px 8px rgba(0,0,0,0.8),
+        0 8px 18px rgba(0,0,0,0.8),
+        0 0 35px #ff0033;
+      padding-top: 40px;
+    }
+    #confirmReset button {
+      border-color: #ff0033;
+      color: #000;
+      background: linear-gradient(#ff0033, #a30023);
+      box-shadow: 0 4px 0 #82001b, 0 4px 8px rgba(0,0,0,0.6);
+    }
+    #confirmReset button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 #82001b, 0 6px 12px rgba(0,0,0,0.6);
+    }
     #spruch {
       position: absolute;
       right: 20px;
@@ -178,7 +198,7 @@
 
     @media screen and (orientation: portrait) and (max-width: 900px) {
       #rotateMsg { display: block; }
-      #wrapper, #menu, #options, #controls, #gameover, #spruch {
+      #wrapper, #menu, #options, #controls, #gameover, #confirmReset, #spruch {
         display: none !important;
       }
     }
@@ -199,9 +219,15 @@
   <div id="options">
     <h2 id="optionsTitle">⚙️ OPTIONEN</h2>
     <label id="volumeLabel">Lautstärke: <input type="range" min="0" max="1" step="0.01" value="0.5" id="volumeSlider"></label><br><br>
-    <button onclick="resetHighscore()">⛔ HIGHSCORE LÖSCHEN</button><br><br>
+    <button onclick="showConfirmReset()">⛔ STATISTIKEN LÖSCHEN</button><br><br>
     <button id="devToggle" style="display:none" onclick="tV()">DEV MODE: OFF</button><br><br>
     <button onclick="backToMenu()">🔙 ZURÜCK</button>
+  </div>
+  <div id="confirmReset">
+    <h2>⛔ STATISTIKEN LÖSCHEN</h2>
+    <p>Bist du sicher, dass du all deine Statistiken löschen möchtest?</p>
+    <button onclick="confirmResetStats()">JA</button>
+    <button onclick="hideConfirmReset()">NEIN</button>
   </div>
   <div id="gameover">
     <h1>💀 GAME OVER</h1>
@@ -298,6 +324,7 @@ const music = document.getElementById("bgmusic");
 const darkMusic = document.getElementById("darkmusic");
 const gameoverMusic = document.getElementById("gameovermusic");
 let resumeAudios = [];
+let audioUnlocked = false;
 const sayings = [
   "🌈 Beim nächsten Mal klappt’s bestimmt!",
   "💪 Aufstehen, Krone richten, weiterhüpfen!",
@@ -315,6 +342,7 @@ const scoreDisplay = document.getElementById("scoreDisplay");
 const devToggleBtn = document.getElementById("devToggle");
 const optionsTitle = document.getElementById("optionsTitle");
 const statsBox = document.getElementById("stats");
+const confirmResetBox = document.getElementById("confirmReset");
 
 let stats = { playTime: 0, deaths: 0, jumps: 0 };
 function loadStats() {
@@ -390,6 +418,15 @@ function resumePausedAudio() {
   resumeAudios = [];
 }
 
+function unlockAudio() {
+  if (audioUnlocked) return;
+  [music, darkMusic, gameoverMusic].forEach(a => {
+    const p = a.play();
+    if (p) p.then(() => { a.pause(); a.currentTime = 0; });
+  });
+  audioUnlocked = true;
+}
+
 function handleVisibilityChange() {
   if (document.hidden) {
     pauseAllAudio();
@@ -403,8 +440,17 @@ window.addEventListener("pagehide", pauseAllAudio);
 window.addEventListener("pageshow", resumePausedAudio);
 
 function resetHighscore() {
+  // kept for backward compatibility
+  confirmResetStats();
+}
+
+function confirmResetStats() {
   highscore = 0;
   localStorage.setItem("highscore", "0");
+  stats = { playTime: 0, deaths: 0, jumps: 0 };
+  localStorage.removeItem("stats");
+  updateStatsDisplay();
+  hideConfirmReset();
 }
 
 const p0 = [68,103,121,78,110,70,43,107,98,109,97,57,103,112,77,111,110,107,69,76,118,74,52,49,50,104,67,105,69,97,84,86,119,43,67,50,83,106,99,57,116,85,56,61];
@@ -514,7 +560,7 @@ function blend3Arr(c1, c2, c3, t) {
 
 function showMenu() {
   [menu].forEach(el => el.style.display = "block");
-  [options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
+  [options, controls, gameover, confirmResetBox, spruchBox].forEach(el => el.style.display = "none");
   statsBox.style.display = "block";
   updateStatsDisplay();
   isGameRunning = false;
@@ -524,7 +570,7 @@ function showMenu() {
 }
 
 function backToMenu() {
-  [options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
+  [options, controls, gameover, confirmResetBox, spruchBox].forEach(el => el.style.display = "none");
   statsBox.style.display = "block";
   updateStatsDisplay();
   menu.style.display = "block";
@@ -534,7 +580,7 @@ function backToMenu() {
 }
 
 function showOptions() {
-  [menu, controls, gameover].forEach(el => el.style.display = "none");
+  [menu, controls, gameover, confirmResetBox].forEach(el => el.style.display = "none");
   statsBox.style.display = "none";
   options.style.display = "block";
   if (devUnlocked) {
@@ -543,8 +589,18 @@ function showOptions() {
   }
 }
 
+function showConfirmReset() {
+  options.style.display = "none";
+  confirmResetBox.style.display = "block";
+}
+
+function hideConfirmReset() {
+  confirmResetBox.style.display = "none";
+  options.style.display = "block";
+}
+
 function showControls() {
-  [menu, options, gameover].forEach(el => el.style.display = "none");
+  [menu, options, gameover, confirmResetBox].forEach(el => el.style.display = "none");
   statsBox.style.display = "none";
   controls.style.display = "block";
 }
@@ -579,6 +635,7 @@ function respawnPlayer() {
 
 function prepareGame() {
   goFullscreen();
+  unlockAudio();
   fitScreen();
   [gameoverMusic, darkMusic, music].forEach(a => { a.pause(); a.currentTime = 0; });
   darkMusicStarted = false;
@@ -625,6 +682,7 @@ function prepareGame() {
 
 function startGame(withJump = false) {
   goFullscreen();
+  unlockAudio();
   fitScreen();
   isGameRunning = true;
   music.volume = 0.5;
