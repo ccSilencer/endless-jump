@@ -146,9 +146,10 @@
   </div>
   <div id="controls"><h2>🕹️ STEUERUNG</h2><p>SPACE / TAP</p><button onclick="backToMenu()">🔙 ZURÜCK</button></div>
   <div id="options">
-    <h2>⚙️ OPTIONEN</h2>
+    <h2 id="optionsTitle">⚙️ OPTIONEN</h2>
     <label id="volumeLabel">Lautstärke: <input type="range" min="0" max="1" step="0.01" value="0.5" id="volumeSlider"></label><br><br>
     <button onclick="resetHighscore()">⛔ HIGHSCORE LÖSCHEN</button><br><br>
+    <button id="devToggle" style="display:none" onclick="tV()">DEV MODE: OFF</button><br><br>
     <button onclick="backToMenu()">🔙 ZURÜCK</button>
   </div>
   <div id="gameover">
@@ -175,6 +176,9 @@ const maxJumpHeight = Math.pow(Math.abs(jumpForce), 2) / (2 * gravity);
 let darkMusicStarted = false;
 let highscore = parseInt(localStorage.getItem("highscore") || "0");
 let wasInGameOverScreen = false;
+let devUnlocked = false;
+let devMode = false;
+let deathDots = [];
 
 function fitScreen() {
   canvas.width = window.innerWidth;
@@ -213,6 +217,27 @@ const controls = document.getElementById("controls");
 const gameover = document.getElementById("gameover");
 const spruchBox = document.getElementById("spruch");
 const scoreDisplay = document.getElementById("scoreDisplay");
+const devToggleBtn = document.getElementById("devToggle");
+const optionsTitle = document.getElementById("optionsTitle");
+
+if (devUnlocked) {
+  devToggleBtn.style.display = "inline-block";
+  devToggleBtn.textContent = `DEV MODE: ${devMode ? "ON" : "OFF"}`;
+}
+
+let secretClicks = [];
+function handleSecret() {
+  const now = Date.now();
+  secretClicks = secretClicks.filter(t => now - t < 600);
+  secretClicks.push(now);
+  if (secretClicks.length >= 5) {
+    secretClicks = [];
+    sV();
+  }
+}
+
+optionsTitle.addEventListener("click", handleSecret);
+optionsTitle.addEventListener("touchstart", handleSecret);
 
 document.getElementById("volumeSlider").addEventListener("input", e => {
   const vol = parseFloat(e.target.value);
@@ -250,6 +275,56 @@ function resetHighscore() {
   localStorage.setItem("highscore", "0");
 }
 
+const p0 = [68,103,121,78,110,70,43,107,98,109,97,57,103,112,77,111,110,107,69,76,118,74,52,49,50,104,67,105,69,97,84,86,119,43,67,50,83,106,99,57,116,85,56,61];
+const p1 = String.fromCharCode(...p0);
+let devModal;
+
+async function xv(pw) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(pw));
+  const arr = Array.from(new Uint8Array(buf));
+  const b64 = btoa(String.fromCharCode(...arr));
+  return b64 === p1;
+}
+
+function sV() {
+  if (!devModal) {
+    devModal = document.createElement("div");
+    devModal.style.position = "absolute";
+    devModal.style.top = "50%";
+    devModal.style.left = "50%";
+    devModal.style.transform = "translate(-50%,-50%)";
+    devModal.style.background = "rgba(10,10,10,0.95)";
+    devModal.style.padding = "20px";
+    devModal.style.border = "4px double #00ffcc";
+    devModal.style.color = "#00ffcc";
+    devModal.style.zIndex = 30;
+    devModal.style.textAlign = "center";
+    devModal.innerHTML = '<h2>Dev Mode Enable</h2><input id="devPass" type="password" style="font-size:16px;"><br><br><button id="devOk">OK</button>';
+    document.body.appendChild(devModal);
+    devModal.querySelector("#devOk").addEventListener("click", cV);
+  }
+  devModal.style.display = "block";
+  devModal.querySelector("#devPass").value = "";
+  devModal.querySelector("#devPass").focus();
+}
+
+async function cV() {
+  const val = devModal.querySelector("#devPass").value;
+  if (await xv(val)) {
+    devUnlocked = true;
+    devModal.style.display = "none";
+    devToggleBtn.style.display = "inline-block";
+    devToggleBtn.textContent = `DEV MODE: ${devMode ? "ON" : "OFF"}`;
+  } else {
+    devModal.style.display = "none";
+  }
+}
+
+function tV() {
+  devMode = !devMode;
+  devToggleBtn.textContent = `DEV MODE: ${devMode ? "ON" : "OFF"}`;
+}
+
 function easeInOutQuad(x) {
   return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
 }
@@ -281,16 +356,22 @@ function showMenu() {
   [menu].forEach(el => el.style.display = "block");
   [options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
   isGameRunning = false;
+  if (devModal) devModal.style.display = "none";
 }
 
 function backToMenu() {
   [options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
   menu.style.display = "block";
+  if (devModal) devModal.style.display = "none";
 }
 
 function showOptions() {
   [menu, controls, gameover].forEach(el => el.style.display = "none");
   options.style.display = "block";
+  if (devUnlocked) {
+    devToggleBtn.style.display = "inline-block";
+    devToggleBtn.textContent = `DEV MODE: ${devMode ? "ON" : "OFF"}`;
+  }
 }
 
 function showControls() {
@@ -315,6 +396,15 @@ function createPlatform() {
   const width = Math.random() * 60 + 80;
   const x = last.x + last.width + gap;
   platforms.push({ x, y, width, height: 16 });
+}
+
+function respawnPlayer() {
+  let next = platforms.find(p => p.x >= player.x) || platforms[platforms.length - 1];
+  player.x = next.x + next.width / 2 - player.width / 2;
+  player.y = next.y - player.height;
+  player.velY = 0;
+  player.onGround = true;
+  scrollX = player.x - canvas.width * 0.3;
 }
 
 function prepareGame() {
@@ -464,18 +554,23 @@ function update(delta) {
   }
 
   if (player.y > canvas.height) {
-    isGameRunning = false;
-    wasInGameOverScreen = true;
-    if (score > highscore) {
-      highscore = score;
-      localStorage.setItem("highscore", highscore);
+    if (devMode) {
+      deathDots.push({ x: player.x, y: canvas.height - 10, life: 120 });
+      respawnPlayer();
+    } else {
+      isGameRunning = false;
+      wasInGameOverScreen = true;
+      if (score > highscore) {
+        highscore = score;
+        localStorage.setItem("highscore", highscore);
+      }
+      scoreDisplay.innerHTML = `Dein Score: ${score}<br><br>Highscore: ${highscore}`;
+      spruchBox.textContent = sayings[Math.floor(Math.random() * sayings.length)];
+      spruchBox.style.display = "block";
+      gameover.style.display = "block";
+      [music, darkMusic].forEach(a => { a.pause(); a.currentTime = 0; });
+      gameoverMusic.play().catch(() => {});
     }
-    scoreDisplay.innerHTML = `Dein Score: ${score}<br><br>Highscore: ${highscore}`;
-    spruchBox.textContent = sayings[Math.floor(Math.random() * sayings.length)];
-    spruchBox.style.display = "block";
-    gameover.style.display = "block";
-    [music, darkMusic].forEach(a => { a.pause(); a.currentTime = 0; });
-    gameoverMusic.play().catch(() => {});
   }
 }
 
@@ -546,6 +641,14 @@ function draw() {
     ctx.fillRect(px + 18, py + 24, 4, 2);
     ctx.fillRect(px + 13, py + 6, 2, 2);
     ctx.restore();
+  }
+
+  deathDots = deathDots.filter(d => d.life-- > 0);
+  ctx.fillStyle = "red";
+  for (let d of deathDots) {
+    ctx.beginPath();
+    ctx.arc(d.x - scrollX, d.y, 4, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   // Score oben rechts, leicht nach unten versetzt
