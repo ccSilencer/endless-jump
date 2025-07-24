@@ -148,14 +148,15 @@
     #stats {
       position: absolute;
       top: 10px;
-      left: 10px;
+      left: 5px;
       transform: none;
       background: rgba(20, 20, 20, 0.8);
-      padding: 6px;
+      padding: 4px;
       border: 3px double #00ffcc;
       color: #00ffcc;
       font-family: 'Press Start 2P', monospace;
-      font-size: 12px;
+      font-size: 10px;
+      max-width: 150px;
       text-align: left;
       z-index: 10;
       display: none;
@@ -234,7 +235,8 @@ let deathDots = [];
 let clouds = [], trees = [];
 const MAX_CLOUDS = 5;
 const CLOUD_SPACING = 450;
-const CLOUD_BASE_Y = 200;
+const CLOUD_BASE_MIN = 100;
+const CLOUD_BASE_MAX = 200;
 const CLOUD_VAR = 40;
 let lightningTimer = 0;
 let scoreDrips = [];
@@ -249,7 +251,8 @@ const maxPlatformY = 270; // highest possible platform position
 function newCloudY(prevY) {
   let y;
   do {
-    y = CLOUD_BASE_Y + (Math.random() - 0.5) * CLOUD_VAR;
+    const base = CLOUD_BASE_MIN + Math.random() * (CLOUD_BASE_MAX - CLOUD_BASE_MIN);
+    y = base + (Math.random() - 0.5) * CLOUD_VAR;
     y = Math.max(20, Math.min(maxPlatformY - 40, y));
   } while (prevY !== undefined && Math.abs(y - prevY) < 20);
   return y;
