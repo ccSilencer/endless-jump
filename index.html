@@ -11,10 +11,7 @@
     html, body {
       margin: 0;
       padding: 0;
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
+      height: 100dvh;
       background: radial-gradient(#0f0f0f, #000000);
       font-family: 'Press Start 2P', monospace;
       display: flex;
@@ -41,7 +38,7 @@
     canvas {
       image-rendering: pixelated;
       width: 100vw;
-      height: 100vh;
+      height: 100dvh;
       touch-action: none;
     }
     #menu, #options, #controls, #gameover {
@@ -127,6 +124,7 @@
       text-align: center;
       z-index: 20;
     }
+
     @media screen and (orientation: portrait) and (max-width: 900px) {
       #rotateMsg { display: block; }
       #wrapper, #menu, #options, #controls, #gameover, #spruch {
@@ -180,10 +178,17 @@ let wasInGameOverScreen = false;
 
 function fitScreen() {
   canvas.width = window.innerWidth;
-  canvas.height = Math.max(window.innerHeight, screen.height);
-  window.scrollTo(0, 1);
-  setTimeout(() => window.scrollTo(0, 1), 500);
+  canvas.height = window.innerHeight;
 }
+
+function goFullscreen() {
+  const el = document.documentElement;
+  const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+  if (req) {
+    req.call(el).catch(() => {});
+  }
+}
+
 window.addEventListener("resize", fitScreen);
 window.addEventListener("orientationchange", () => { fitScreen(); checkOrientation(); });
 document.addEventListener("fullscreenchange", fitScreen);
@@ -247,7 +252,7 @@ function maxJumpDistance(currentSpeed) {
 }
 
 function createPlatform() {
-  const baseY = Math.max(window.innerHeight, screen.height) - 80;
+  const baseY = canvas.height - 80;
   const last = platforms[platforms.length - 1];
   const maxGap = Math.max(100, maxJumpDistance(speed) * 0.9);
   const minGap = maxGap * 0.4;
@@ -261,29 +266,39 @@ function createPlatform() {
 }
 
 function prepareGame() {
+  goFullscreen();
   fitScreen();
   [gameoverMusic, darkMusic, music].forEach(a => { a.pause(); a.currentTime = 0; });
   darkMusicStarted = false;
   wasInGameOverScreen = false;
   [menu, options, controls, gameover, spruchBox].forEach(el => el.style.display = "none");
   scrollX = 0; speed = 3; speedTimer = 0; platforms = []; score = 0;
-  const baseY = Math.max(window.innerHeight, screen.height) - 80;
+  const baseY = canvas.height - 80;
   const clampY = y => Math.max(270, Math.min(baseY, y));
+
   let x = 0, y = baseY;
   platforms.push({ x, y, width: 120, height: 16 });
+
   x += 160;
   y = clampY(y + (Math.random() * 60 - 30));
   platforms.push({ x, y, width: 110, height: 16 });
+
   x += 180;
   y = clampY(y + (Math.random() * 80 - 40));
   platforms.push({ x, y, width: 110, height: 16 });
+
   x += 200;
   y = clampY(y + (Math.random() * 80 - 40));
   platforms.push({ x, y, width: 100, height: 16 });
-  for (let i = platforms.length; i < 15; i++) createPlatform();
+
+  for (let i = platforms.length; i < 15; i++) {
+    createPlatform();
+  }
+
   const firstPlatform = platforms[0];
   player.x = firstPlatform.x + firstPlatform.width / 2 - player.width / 2;
   player.y = firstPlatform.y - player.height;
+
   scrollX = player.x - canvas.width * 0.3;
   player.velY = 0;
   player.onGround = true;
@@ -295,6 +310,7 @@ function prepareGame() {
 }
 
 function startGame(withJump = false) {
+  goFullscreen();
   fitScreen();
   isGameRunning = true;
   music.volume = 0.5;
@@ -354,27 +370,33 @@ function update(delta) {
   if (!isGameRunning) return;
   speedTimer += delta;
   score = Math.floor(speedTimer / 10);
+
   if (score >= 300 && !darkMusicStarted) {
     darkMusicStarted = true;
     darkMusic.volume = 0;
     darkMusic.play().catch(() => {});
   }
+
   if (darkMusicStarted) {
     music.volume = Math.max(0, music.volume - 0.0007 * delta);
     darkMusic.volume = Math.min(0.5, darkMusic.volume + 0.0007 * delta);
   }
+
   if (Math.floor(speedTimer / 600) > Math.floor((speedTimer - delta) / 600) && speed < 6) {
     speed += 0.25;
   }
+
   player.velY += gravity * delta;
   player.y += player.velY * delta;
   if (player.y < 20 && player.velY < 0) player.velY *= 0.5;
   player.x += speed * delta;
   scrollX = player.x - canvas.width * 0.3;
+
   if (platforms[0].x + platforms[0].width < scrollX - 100) {
     platforms.shift();
     createPlatform();
   }
+
   player.onGround = false;
   for (let p of platforms) {
     if (player.x < p.x + p.width && player.x + player.width > p.x &&
@@ -385,6 +407,7 @@ function update(delta) {
       player.onGround = true;
     }
   }
+
   if (player.y > canvas.height) {
     isGameRunning = false;
     wasInGameOverScreen = true;
@@ -409,6 +432,7 @@ function draw() {
   sky.addColorStop(1, `rgb(${204 - 70 * smooth}, ${238 - 200 * smooth}, ${255 - 255 * smooth})`);
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
   for (let p of platforms) {
     let r = Math.floor(76 + 100 * smooth);
     let g = Math.floor(175 - 150 * smooth);
@@ -418,6 +442,7 @@ function draw() {
     ctx.fillStyle = `rgba(${r - 50},0,0,0.6)`;
     ctx.fillRect(p.x - scrollX, p.y + 8, p.width, 8);
   }
+
   const px = player.x - scrollX, py = player.y;
   const bodyColor = smooth > 0.8 ? "#556b2f" : smooth > 0.4 ? "#888" : "#ff5050";
   const eyeOuter = smooth > 0.5 ? "#ff0000" : "#000";
@@ -425,14 +450,18 @@ function draw() {
   const mouthColor = smooth > 0.7 ? "#aa0000" : "#000";
   const toothColor = smooth > 0.8 ? "#fff" : null;
   const armColor = smooth > 0.7 ? "#660000" : "#cc0000";
+
   ctx.fillStyle = bodyColor;
   ctx.fillRect(px, py, player.width, player.height);
+
   ctx.fillStyle = eyeOuter;
   ctx.fillRect(px + 6, py + 4, 6, 6);
   ctx.fillRect(px + 20, py + 4, 6, 6);
+
   ctx.fillStyle = eyeInner;
   ctx.fillRect(px + 8, py + 6, 2, 2);
   ctx.fillRect(px + 22, py + 6, 2, 2);
+
   ctx.fillStyle = mouthColor;
   ctx.fillRect(px + 10, py + 12, 12, 4);
   if (toothColor) {
@@ -441,17 +470,21 @@ function draw() {
     ctx.fillRect(px + 14, py + 12, 2, 4);
     ctx.fillRect(px + 17, py + 12, 2, 4);
   }
+
   ctx.fillStyle = armColor;
   ctx.fillRect(px - 4, py + 12, 4, 10);
   ctx.fillRect(px + player.width, py + 12, 4, 10);
   ctx.fillRect(px + 2, py + player.height - 4, 8, 4);
   ctx.fillRect(px + 22, py + player.height - 4, 8, 4);
+
   if (smooth > 0.8) {
     ctx.fillStyle = "#222";
     ctx.fillRect(px + 5, py + 20, 3, 3);
     ctx.fillRect(px + 18, py + 24, 4, 2);
     ctx.fillRect(px + 13, py + 6, 2, 2);
   }
+
+  // Score oben rechts, leicht nach unten versetzt
   const scoreX = canvas.width - 10;
   const scoreY = 50;
   ctx.font = "16px 'Press Start 2P'";
@@ -462,6 +495,7 @@ function draw() {
   ctx.fillStyle = "white";
   ctx.fillText("Score: " + score, scoreX, scoreY);
 }
+
 showMenu();
   </script>
 </body>
