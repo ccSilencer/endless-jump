@@ -567,7 +567,10 @@ function update(delta) {
   if (darkMusicStarted) {
     music.volume = Math.max(0, music.volume - 0.001 * delta);
     darkMusic.volume = Math.min(1, darkMusic.volume + 0.001 * delta);
-    if (music.volume === 0) music.pause();
+    if (music.volume <= 0.001 && darkMusic.volume >= 1) {
+      music.volume = 0;
+      music.pause();
+    }
   }
 
   if (Math.floor(speedTimer / 600) > Math.floor((speedTimer - delta) / 600) && speed < 6) {
