@@ -352,7 +352,7 @@ function startGame(withJump = false) {
 
 document.addEventListener("keydown", e => {
   if (e.code === "Space") {
-    if (!isGameRunning && wasInGameOverScreen) {
+    if (!isGameRunning && (wasInGameOverScreen || gameover.style.display === "block")) {
       wasInGameOverScreen = false;
       prepareGame();
       return;
