@@ -524,7 +524,12 @@ function update(delta) {
 
   if (darkMusicStarted) {
     music.volume = Math.max(0, music.volume - 0.0007 * delta);
-    darkMusic.volume = Math.min(0.5, darkMusic.volume + 0.0007 * delta);
+    if (score < 600) {
+      darkMusic.volume = Math.min(0.5, darkMusic.volume + 0.0007 * delta);
+    } else {
+      darkMusic.volume = Math.max(0, darkMusic.volume - 0.0007 * delta);
+      if (darkMusic.volume === 0) darkMusic.pause();
+    }
   }
 
   if (Math.floor(speedTimer / 600) > Math.floor((speedTimer - delta) / 600) && speed < 6) {
