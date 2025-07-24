@@ -426,11 +426,6 @@ function unlockAudio() {
   });
   audioUnlocked = true;
 }
-// Ensure audio can be unlocked on iOS when launched from the home screen
-// by listening for the first user interaction anywhere on the page
-document.addEventListener('touchstart', unlockAudio, { once: true });
-document.addEventListener('mousedown', unlockAudio, { once: true });
-document.addEventListener('keydown', unlockAudio, { once: true });
 
 function handleVisibilityChange() {
   if (document.hidden) {
@@ -640,7 +635,6 @@ function respawnPlayer() {
 
 function prepareGame() {
   goFullscreen();
-  unlockAudio();
   fitScreen();
   [gameoverMusic, darkMusic, music].forEach(a => { a.pause(); a.currentTime = 0; });
   darkMusicStarted = false;
