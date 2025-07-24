@@ -421,11 +421,14 @@ function resumePausedAudio() {
 function unlockAudio() {
   if (audioUnlocked) return;
   [music, darkMusic, gameoverMusic].forEach(a => {
-    const p = a.play();
-    if (p) p.then(() => { a.pause(); a.currentTime = 0; });
+    a.play()
+      .then(() => { a.pause(); a.currentTime = 0; })
+      .catch(() => {});
   });
   audioUnlocked = true;
 }
+
+window.addEventListener("load", unlockAudio);
 
 function handleVisibilityChange() {
   if (document.hidden) {
