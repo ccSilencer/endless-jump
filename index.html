@@ -37,10 +37,8 @@
     }
     canvas {
       image-rendering: pixelated;
-      max-width: 100vw;
-      max-height: 100dvh;
-      width: 100%;
-      height: auto;
+      width: 100vw;
+      height: 100dvh;
       touch-action: none;
     }
     #menu, #options, #controls, #gameover {
@@ -178,6 +176,24 @@ let darkMusicStarted = false;
 let highscore = parseInt(localStorage.getItem("highscore") || "0");
 let wasInGameOverScreen = false;
 
+function fitScreen() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+function goFullscreen() {
+  const el = document.documentElement;
+  const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+  if (req) {
+    req.call(el).catch(() => {});
+  }
+}
+
+window.addEventListener("resize", fitScreen);
+window.addEventListener("orientationchange", () => { fitScreen(); checkOrientation(); });
+document.addEventListener("fullscreenchange", fitScreen);
+fitScreen();
+
 const music = document.getElementById("bgmusic");
 const darkMusic = document.getElementById("darkmusic");
 const gameoverMusic = document.getElementById("gameovermusic");
@@ -250,6 +266,8 @@ function createPlatform() {
 }
 
 function prepareGame() {
+  goFullscreen();
+  fitScreen();
   [gameoverMusic, darkMusic, music].forEach(a => { a.pause(); a.currentTime = 0; });
   darkMusicStarted = false;
   wasInGameOverScreen = false;
@@ -292,6 +310,8 @@ function prepareGame() {
 }
 
 function startGame(withJump = false) {
+  goFullscreen();
+  fitScreen();
   isGameRunning = true;
   music.volume = 0.5;
   [music, darkMusic].forEach(a => { a.pause(); a.currentTime = 0; });
@@ -335,7 +355,6 @@ function checkOrientation() {
     isGameRunning = false;
   }
 }
-window.addEventListener("orientationchange", checkOrientation);
 checkOrientation();
 
 let lastTime = 0;
