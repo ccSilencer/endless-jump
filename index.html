@@ -197,6 +197,7 @@ fitScreen();
 const music = document.getElementById("bgmusic");
 const darkMusic = document.getElementById("darkmusic");
 const gameoverMusic = document.getElementById("gameovermusic");
+let resumeAudios = [];
 const sayings = [
   "🌈 Beim nächsten Mal klappt’s bestimmt!",
   "💪 Aufstehen, Krone richten, weiterhüpfen!",
@@ -213,8 +214,35 @@ const spruchBox = document.getElementById("spruch");
 const scoreDisplay = document.getElementById("scoreDisplay");
 
 document.getElementById("volumeSlider").addEventListener("input", e => {
-  [music, darkMusic, gameoverMusic].forEach(a => a.volume = e.target.value);
+  const vol = parseFloat(e.target.value);
+  [music, darkMusic, gameoverMusic].forEach(a => a.volume = vol);
 });
+
+function pauseAllAudio() {
+  [music, darkMusic, gameoverMusic].forEach(a => {
+    if (!a.paused) {
+      a.pause();
+      resumeAudios.push(a);
+    }
+  });
+}
+
+function resumePausedAudio() {
+  resumeAudios.forEach(a => a.play().catch(() => {}));
+  resumeAudios = [];
+}
+
+function handleVisibilityChange() {
+  if (document.hidden) {
+    pauseAllAudio();
+  } else {
+    resumePausedAudio();
+  }
+}
+
+document.addEventListener("visibilitychange", handleVisibilityChange);
+window.addEventListener("pagehide", pauseAllAudio);
+window.addEventListener("pageshow", resumePausedAudio);
 
 function resetHighscore() {
   highscore = 0;
@@ -348,11 +376,14 @@ canvas.addEventListener("touchstart", e => {
     player.velY = jumpForce;
     player.onGround = false;
   }
-});
+}, { passive: false });
 
 function checkOrientation() {
   if (window.matchMedia("(orientation: portrait)").matches) {
     isGameRunning = false;
+    pauseAllAudio();
+  } else if (!document.hidden) {
+    resumePausedAudio();
   }
 }
 checkOrientation();
