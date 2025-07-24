@@ -565,13 +565,9 @@ function update(delta) {
   }
 
   if (darkMusicStarted) {
-    music.volume = Math.max(0, music.volume - 0.0007 * delta);
-    if (score < 600) {
-      darkMusic.volume = Math.min(0.5, darkMusic.volume + 0.0007 * delta);
-    } else {
-      darkMusic.volume = Math.max(0, darkMusic.volume - 0.0007 * delta);
-      if (darkMusic.volume === 0) darkMusic.pause();
-    }
+    music.volume = Math.max(0, music.volume - 0.001 * delta);
+    darkMusic.volume = Math.min(1, darkMusic.volume + 0.001 * delta);
+    if (music.volume === 0) music.pause();
   }
 
   if (Math.floor(speedTimer / 600) > Math.floor((speedTimer - delta) / 600) && speed < 6) {
@@ -637,17 +633,34 @@ function draw() {
     const gg = lerp(166, 70, smooth);
     const gb = lerp(76, 70, smooth);
     const base = [gr, gg, gb];
-    const highlight = lighten(base, 0.25);
-    const grad = ctx.createLinearGradient(0, p.y, 0, p.y + 8);
-    grad.addColorStop(0, `rgb(${Math.round(highlight[0])},${Math.round(highlight[1])},${Math.round(highlight[2])})`);
-    grad.addColorStop(1, `rgb(${Math.round(gr)},${Math.round(gg)},${Math.round(gb)})`);
-    ctx.fillStyle = grad;
-    ctx.fillRect(p.x - scrollX, p.y, p.width, 8);
-    const dr = lerp(120, 40, smooth);
-    const dg = lerp(92, 40, smooth);
-    const db = lerp(60, 40, smooth);
-    ctx.fillStyle = `rgb(${Math.round(dr)},${Math.round(dg)},${Math.round(db)})`;
-    ctx.fillRect(p.x - scrollX, p.y + 8, p.width, 8);
+    const topCol = rgbString(lighten(base, 0.4));
+    const frontCol = rgbString(base);
+    const sideCol = rgbString(shade(base, -0.35));
+    const depth = 16;
+    const slant = 6;
+    const x = p.x - scrollX;
+    const y = p.y;
+
+    ctx.fillStyle = topCol;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + slant, y - slant);
+    ctx.lineTo(x + p.width + slant, y - slant);
+    ctx.lineTo(x + p.width, y);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = frontCol;
+    ctx.fillRect(x, y, p.width, depth);
+
+    ctx.fillStyle = sideCol;
+    ctx.beginPath();
+    ctx.moveTo(x + p.width, y);
+    ctx.lineTo(x + p.width + slant, y - slant);
+    ctx.lineTo(x + p.width + slant, y + depth - slant);
+    ctx.lineTo(x + p.width, y + depth);
+    ctx.closePath();
+    ctx.fill();
   }
 
   const px = player.x - scrollX, py = player.y;
@@ -659,7 +672,8 @@ function draw() {
 
   const topColor = rgbString(shade(bodyBase, 0.25));
   const sideColor = rgbString(shade(bodyBase, -0.25));
-  const frontColor = rgbString(bodyBase);
+  const frontGradTop = rgbString(lighten(bodyBase, 0.3));
+  const frontGradBottom = rgbString(shade(bodyBase, -0.2));
 
   ctx.fillStyle = topColor;
   ctx.beginPath();
@@ -679,8 +693,13 @@ function draw() {
   ctx.closePath();
   ctx.fill();
 
-  ctx.fillStyle = frontColor;
+  const gradFront = ctx.createLinearGradient(0, py, 0, py + player.height);
+  gradFront.addColorStop(0, frontGradTop);
+  gradFront.addColorStop(1, frontGradBottom);
+  ctx.fillStyle = gradFront;
   ctx.fillRect(px, py, player.width, player.height);
+  ctx.strokeStyle = "black";
+  ctx.strokeRect(px, py, player.width, player.height);
 
   ctx.fillStyle = eyeOuter;
   ctx.fillRect(px + 6, py + 4, 6, 6);
@@ -693,7 +712,7 @@ function draw() {
   ctx.fillStyle = mouthColor;
   ctx.fillRect(px + 10, py + 12, 12, 4 + smooth * 2);
 
-  const armFront = rgbString(armBase);
+  const armFront = rgbString(lighten(armBase, 0.2));
   const armSide = rgbString(shade(armBase, -0.25));
 
   ctx.fillStyle = armSide;
