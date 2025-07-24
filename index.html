@@ -216,6 +216,10 @@ let devMode = false;
 let deathDots = [];
 // background elements
 let clouds = [], trees = [];
+const MAX_CLOUDS = 5;
+const CLOUD_SPACING = 300;
+const CLOUD_BASE_Y = 100;
+const CLOUD_VAR = 40;
 let lightningTimer = 0;
 let scoreDrips = [];
 
@@ -226,15 +230,25 @@ function fitScreen() {
 
 const maxPlatformY = 270; // highest possible platform position
 
+function newCloudY(prevY) {
+  let y;
+  do {
+    y = CLOUD_BASE_Y + (Math.random() - 0.5) * CLOUD_VAR;
+    y = Math.max(20, Math.min(maxPlatformY - 40, y));
+  } while (prevY !== undefined && Math.abs(y - prevY) < 20);
+  return y;
+}
+
 function initBackground() {
   clouds = [];
   trees = [];
-  const total = Math.ceil(canvas.width / 200) + 4;
-  for (let i = 0; i < total; i++) {
-    clouds.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * maxPlatformY
-    });
+  let x = 0;
+  let prevY;
+  for (let i = 0; i < MAX_CLOUDS; i++) {
+    const y = newCloudY(prevY);
+    clouds.push({ x, y });
+    x += CLOUD_SPACING;
+    prevY = y;
   }
   // do not spawn trees
 }
@@ -711,11 +725,14 @@ function draw() {
   ctx.fillStyle = shadeGrad;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  clouds.forEach(cl => {
+  clouds.forEach((cl, idx) => {
     let x = cl.x - scrollX * 0.2;
     if (x + 100 < 0) {
-      cl.x = canvas.width + Math.random() * canvas.width;
-      cl.y = Math.random() * maxPlatformY;
+      const maxX = Math.max(...clouds.map(c => c.x));
+      const prev = clouds.find(c => c.x === maxX) || cl;
+      cl.x = maxX + CLOUD_SPACING;
+      cl.y = newCloudY(prev.y);
+      x = cl.x - scrollX * 0.2;
     }
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
     ctx.beginPath();
