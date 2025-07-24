@@ -159,7 +159,7 @@
     <button onclick="backToMenu()">🚪 AUFGEBEN</button>
   </div>
   <div id="spruch"></div>
-  <div id="wrapper"><canvas id="game" width="1024" height="576"></canvas></div>
+  <div id="wrapper"><canvas id="game" width="1024" height="576" tabindex="0"></canvas></div>
   <div id="rotateMsg">🔄 Bitte Gerät drehen</div>
   <audio id="bgmusic" src="bgmusic.mp3" loop></audio>
   <audio id="darkmusic" src="darktheme.mp3" loop></audio>
@@ -187,6 +187,7 @@ function goFullscreen() {
   if (req) {
     req.call(el).catch(() => {});
   }
+  canvas.focus();
 }
 
 window.addEventListener("resize", fitScreen);
