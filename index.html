@@ -6,31 +6,32 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Endless Jump</title>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100dvh;
-      background: radial-gradient(#0f0f0f, #000000);
-      font-family: 'Press Start 2P', monospace;
+      background: radial-gradient(#202020, #050505);
+      font-family: 'Inter', sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
       overflow: hidden;
-      color: #00ffcc;
+      color: #1abc9c;
       -webkit-user-select: none;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
       touch-action: none;
     }
     #wrapper {
-      background: #1c1c1c;
+      background: #111;
       padding: 8px;
       display: flex;
       justify-content: center;
       align-items: center;
-      border: 4px solid #000;
+      border: 2px solid #333;
+      border-radius: 12px;
       box-sizing: border-box;
       width: 100%;
       height: 100%;
@@ -46,54 +47,53 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(10, 10, 10, 0.95);
-      padding: 60px 30px 30px 30px;
-      border: 4px double #00ffcc;
-      color: #00ffcc;
-      font-family: 'Press Start 2P', monospace;
+      background: rgba(20, 20, 20, 0.95);
+      padding: 50px 40px 30px 40px;
+      border: 2px solid #1abc9c;
+      border-radius: 8px;
+      color: #eee;
+      font-family: 'Inter', sans-serif;
       text-align: center;
       display: none;
       z-index: 10;
-      box-shadow: 0 0 35px #00ffee;
-      animation: fadeIn 0.5s ease-in-out;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      animation: fadeIn 0.4s ease-in-out;
     }
     #gameover {
-      border: 4px double #ff0033;
-      color: #ff0033;
-      box-shadow: 0 0 35px #ff0033;
+      border-color: #ff4e4e;
+      color: #ff4e4e;
+      box-shadow: 0 0 20px rgba(255,78,78,0.5);
       padding-top: 40px;
     }
     #menu h1, #gameover h1 {
-      font-size: 22px;
+      font-size: 26px;
       margin: 0 0 20px 0;
       color: #fff;
-      text-shadow: 0 0 5px #00ffee, 0 0 10px #00ffee;
+      text-shadow: none;
     }
     button {
       margin: 10px;
-      padding: 14px 28px;
+      padding: 12px 28px;
       font-size: 14px;
-      font-family: 'Press Start 2P', monospace;
-      background: #000;
-      border: 2px solid #00ffcc;
-      color: #00ffcc;
+      font-family: 'Inter', sans-serif;
+      background: #111;
+      border: 1px solid #1abc9c;
+      border-radius: 6px;
+      color: #1abc9c;
       cursor: pointer;
-      transition: all 0.2s ease;
-      text-shadow: 0 0 3px #00ffee;
+      transition: background 0.2s, color 0.2s;
     }
     button:hover {
-      background: #00ffee;
-      color: #000;
-      text-shadow: none;
+      background: #1abc9c;
+      color: #111;
     }
     #gameover button {
-      border: 2px solid #ff0033;
-      color: #ff0033;
-      text-shadow: 0 0 3px #ff0033;
+      border-color: #ff4e4e;
+      color: #ff4e4e;
     }
     #gameover button:hover {
-      background: #ff0033;
-      color: #000;
+      background: #ff4e4e;
+      color: #111;
     }
     #spruch {
       position: absolute;
@@ -102,13 +102,13 @@
       transform: rotate(-6deg);
       color: #fff;
       font-size: 14px;
-      font-family: 'Press Start 2P', monospace;
+      font-family: 'Inter', sans-serif;
       max-width: 220px;
       text-align: right;
       z-index: 9;
       display: none;
       pointer-events: none;
-      text-shadow: 0 0 4px #ff0033;
+      text-shadow: 0 0 4px #ff4e4e;
     }
     #rotateMsg {
       display: none;
@@ -116,11 +116,11 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(10, 10, 10, 0.95);
+      background: rgba(20, 20, 20, 0.95);
       padding: 20px;
-      border: 4px double #00ffcc;
-      color: #00ffcc;
-      font-family: 'Press Start 2P', monospace;
+      border: 2px solid #1abc9c;
+      color: #1abc9c;
+      font-family: 'Inter', sans-serif;
       text-align: center;
       z-index: 20;
     }
@@ -524,7 +524,12 @@ function update(delta) {
 
   if (darkMusicStarted) {
     music.volume = Math.max(0, music.volume - 0.0007 * delta);
-    darkMusic.volume = Math.min(0.5, darkMusic.volume + 0.0007 * delta);
+    if (score < 600) {
+      darkMusic.volume = Math.min(0.5, darkMusic.volume + 0.0007 * delta);
+    } else {
+      darkMusic.volume = Math.max(0, darkMusic.volume - 0.0007 * delta);
+      if (darkMusic.volume === 0) darkMusic.pause();
+    }
   }
 
   if (Math.floor(speedTimer / 600) > Math.floor((speedTimer - delta) / 600) && speed < 6) {
@@ -577,8 +582,8 @@ function update(delta) {
 function draw() {
   const corruption = Math.min(1, score / 500);
   const smooth = easeInOutQuad(corruption);
-  const skyTop = lerpColor([94, 194, 240], [194, 94, 40], smooth);
-  const skyBottom = lerpColor([204, 238, 255], [134, 38, 0], smooth);
+  const skyTop = lerpColor([50, 60, 70], [20, 20, 20], smooth);
+  const skyBottom = lerpColor([80, 90, 100], [10, 10, 10], smooth);
   const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
   sky.addColorStop(0, skyTop);
   sky.addColorStop(1, skyBottom);
@@ -586,62 +591,40 @@ function draw() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   for (let p of platforms) {
-    const r = lerp(76, 176, smooth);
-    const g = lerp(175, 25, smooth);
-    const b = lerp(80, 0, smooth);
+    const r = lerp(80, 40, smooth);
+    const g = lerp(80, 40, smooth);
+    const b = lerp(80, 40, smooth);
     const base = [r, g, b];
-    const highlight = lighten(base, 0.25);
+    const highlight = lighten(base, 0.2);
     const grad = ctx.createLinearGradient(0, p.y, 0, p.y + 8);
     grad.addColorStop(0, `rgb(${Math.round(highlight[0])},${Math.round(highlight[1])},${Math.round(highlight[2])})`);
     grad.addColorStop(1, `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`);
     ctx.fillStyle = grad;
     ctx.fillRect(p.x - scrollX, p.y, p.width, 8);
-    ctx.fillStyle = `rgba(${Math.round(r - 50)},0,0,0.6)`;
+    ctx.fillStyle = `rgba(0,0,0,0.6)`;
     ctx.fillRect(p.x - scrollX, p.y + 8, p.width, 8);
   }
 
   const px = player.x - scrollX, py = player.y;
-  const bodyColor = blend3([255,80,80],[136,136,136],[85,107,47], smooth);
-  const eyeOuter = lerpColor([0,0,0],[255,0,0], Math.max(0,(smooth-0.3)/0.7));
-  const eyeInner = lerpColor([255,255,255],[255,160,160], Math.max(0,(smooth-0.3)/0.7));
-  const mouthColor = lerpColor([0,0,0],[170,0,0], Math.max(0,(smooth-0.5)/0.5));
-  const armColor = lerpColor([204,0,0],[102,0,0], Math.max(0,(smooth-0.5)/0.5));
-  
-  ctx.fillStyle = bodyColor;
-  ctx.fillRect(px, py, player.width, player.height);
+  const base1 = [26, 200, 180];
+  const base2 = [15, 80, 70];
+  const c1 = lerpColor(base1, [80,80,80], smooth);
+  const c2 = lerpColor(base2, [30,30,30], smooth);
+  const grad = ctx.createRadialGradient(px + 16, py + 16, 4, px + 16, py + 16, 16);
+  grad.addColorStop(0, c1);
+  grad.addColorStop(1, c2);
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(px + 16, py + 16, 16, 0, Math.PI * 2);
+  ctx.fill();
 
-  ctx.fillStyle = eyeOuter;
-  ctx.fillRect(px + 6, py + 4, 6, 6);
-  ctx.fillRect(px + 20, py + 4, 6, 6);
-
-  ctx.fillStyle = eyeInner;
-  ctx.fillRect(px + 8, py + 6, 2, 2);
-  ctx.fillRect(px + 22, py + 6, 2, 2);
-
-  ctx.fillStyle = mouthColor;
-  ctx.fillRect(px + 10, py + 12, 12, 4 + smooth * 2);
-  if (smooth > 0.5) {
-    ctx.fillStyle = `rgba(255,255,255,${(smooth-0.5)*2})`;
-    ctx.fillRect(px + 11, py + 12, 2, 4);
-    ctx.fillRect(px + 14, py + 12, 2, 4);
-    ctx.fillRect(px + 17, py + 12, 2, 4);
-  }
-
-  ctx.fillStyle = armColor;
-  ctx.fillRect(px - 4, py + 12, 4, 10);
-  ctx.fillRect(px + player.width, py + 12, 4, 10);
-  ctx.fillRect(px + 2, py + player.height - 4, 8, 4);
-  ctx.fillRect(px + 22, py + player.height - 4, 8, 4);
-
-  if (smooth > 0.8) {
-    ctx.save();
-    ctx.globalAlpha = (smooth - 0.8) / 0.2;
-    ctx.fillStyle = "#222";
-    ctx.fillRect(px + 5, py + 20, 3, 3);
-    ctx.fillRect(px + 18, py + 24, 4, 2);
-    ctx.fillRect(px + 13, py + 6, 2, 2);
-    ctx.restore();
-  }
+  ctx.fillStyle = "#fff";
+  ctx.beginPath();
+  ctx.arc(px + 10, py + 12, 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(px + 22, py + 12, 2, 0, Math.PI * 2);
+  ctx.fill();
 
   deathDots = deathDots.filter(d => d.life-- > 0);
   ctx.fillStyle = "red";
@@ -654,12 +637,12 @@ function draw() {
   // Score oben rechts, leicht nach unten versetzt
   const scoreX = canvas.width - 10;
   const scoreY = 50;
-  ctx.font = "16px 'Press Start 2P'";
+  ctx.font = "16px 'Inter'";
   ctx.textAlign = "right";
   ctx.textBaseline = "top";
   ctx.fillStyle = "black";
   ctx.fillText("Score: " + score, scoreX + 1, scoreY + 1);
-  ctx.fillStyle = "white";
+  ctx.fillStyle = "#1abc9c";
   ctx.fillText("Score: " + score, scoreX, scoreY);
 }
 
