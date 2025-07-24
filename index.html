@@ -676,11 +676,19 @@ function draw() {
   }
 
   const px = player.x - scrollX, py = player.y;
-  const bodyBase = blend3Arr([80,160,240],[160,160,160],[100,140,80], smooth);
+  const bodyBase = [
+    lerp(200, 20, smooth),
+    lerp(0, 60, smooth),
+    lerp(0, 20, smooth)
+  ];
   const eyeOuter = lerpColor([0,0,0],[255,0,0], Math.max(0,(smooth-0.3)/0.7));
   const eyeInner = lerpColor([255,255,255],[255,160,160], Math.max(0,(smooth-0.3)/0.7));
   const mouthColor = lerpColor([0,0,0],[170,0,0], Math.max(0,(smooth-0.5)/0.5));
-  const armBase = blend3Arr([80,160,240],[160,160,160],[100,140,80], Math.max(0,(smooth-0.5)/0.5));
+  const armBase = [
+    lerp(200, 20, smooth),
+    lerp(0, 60, smooth),
+    lerp(0, 20, smooth)
+  ];
 
   const topColor = rgbString(shade(bodyBase, 0.25));
   const sideColor = rgbString(shade(bodyBase, -0.25));
